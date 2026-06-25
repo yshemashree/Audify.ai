@@ -1,0 +1,10 @@
+smolagents
+fastapi
+uvicorn
+python-dotenv
+requests
+numpy
+sentence-transformers
+datasets
+soundfile
+python-multipart
