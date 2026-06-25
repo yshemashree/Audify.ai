@@ -1,12 +1,12 @@
 import os
 from dotenv import load_dotenv
-from smolagents import ToolCallingAgent, ApiModel
+from smolagents import ToolCallingAgent, InferenceClientModel
 from tools import elaborate_prompt, search_audio, generate_audio
 
 load_dotenv()
 HF_TOKEN = os.getenv("HUGGINGFACE_API_TOKEN")
 
-model = ApiModel(
+model = InferenceClientModel(
     model_id="mistralai/Mistral-7B-Instruct-v0.3",
     token=HF_TOKEN,
 )
