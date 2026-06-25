@@ -12,9 +12,9 @@
 
     :root {
       --bg: #000000;
-      --neon-purple: #b300ff;
+      --neon-purple: #00ff87;
       --neon-cyan: #00e5ff;
-      --neon-pink: #ff00aa;
+      --neon-pink: #b3ff00;
       --white: #ffffff;
       --grey: #888;
       --dim: #333;
@@ -84,17 +84,17 @@
       background: var(--neon-purple);
       border: none;
       border-radius: 6px;
-      color: var(--white);
+      color: #000;
       font-family: 'DM Sans', sans-serif;
       font-size: 0.85rem;
-      font-weight: 500;
+      font-weight: 600;
       cursor: pointer;
       transition: all 0.2s;
-      box-shadow: 0 0 20px rgba(179,0,255,0.4);
+      box-shadow: 0 0 20px rgba(0,255,135,0.4);
     }
 
     .nav-cta:hover {
-      box-shadow: 0 0 30px rgba(179,0,255,0.7);
+      box-shadow: 0 0 30px rgba(0,255,135,0.7);
       transform: translateY(-1px);
     }
 
@@ -153,7 +153,7 @@
       display: block;
       color: transparent;
       -webkit-text-stroke: 1.5px var(--neon-purple);
-      text-shadow: 0 0 40px rgba(179,0,255,0.3);
+      text-shadow: 0 0 40px rgba(0,255,135,0.3);
     }
 
     .hero-sub {
@@ -193,7 +193,7 @@
 
     .sound-input:focus {
       border-color: var(--neon-purple);
-      box-shadow: 0 0 0 1px var(--neon-purple), 0 0 20px rgba(179,0,255,0.15);
+      box-shadow: 0 0 0 1px var(--neon-purple), 0 0 20px rgba(0,255,135,0.15);
     }
 
     .sound-input::placeholder { color: #444; }
@@ -203,19 +203,19 @@
       background: var(--neon-purple);
       border: none;
       border-radius: 8px;
-      color: #fff;
+      color: #000;
       font-family: 'DM Sans', sans-serif;
-      font-weight: 600;
+      font-weight: 700;
       font-size: 0.9rem;
       cursor: pointer;
       white-space: nowrap;
       transition: all 0.2s;
-      box-shadow: 0 0 24px rgba(179,0,255,0.5);
+      box-shadow: 0 0 24px rgba(0,255,135,0.5);
       letter-spacing: 0.01em;
     }
 
     .gen-btn:hover {
-      box-shadow: 0 0 40px rgba(179,0,255,0.8);
+      box-shadow: 0 0 40px rgba(0,255,135,0.8);
       transform: translateY(-1px);
     }
 
@@ -244,7 +244,7 @@
     .chip:hover {
       border-color: var(--neon-purple);
       color: var(--neon-purple);
-      box-shadow: 0 0 10px rgba(179,0,255,0.2);
+      box-shadow: 0 0 10px rgba(0,255,135,0.2);
     }
 
     /* STATUS */
@@ -266,7 +266,7 @@
 
     .spinner {
       width: 13px; height: 13px;
-      border: 1.5px solid rgba(179,0,255,0.3);
+      border: 1.5px solid rgba(0,255,135,0.3);
       border-top-color: var(--neon-purple);
       border-radius: 50%;
       animation: spin 0.7s linear infinite;
@@ -312,9 +312,9 @@
     }
 
     .badge.generated {
-      background: rgba(179,0,255,0.12);
+      background: rgba(0,255,135,0.12);
       color: var(--neon-purple);
-      border: 1px solid rgba(179,0,255,0.3);
+      border: 1px solid rgba(0,255,135,0.3);
     }
 
     .badge.retrieved {
@@ -357,7 +357,7 @@
       inset: -80px;
       border-radius: 50%;
       background: radial-gradient(circle,
-        rgba(179,0,255,0.18) 0%,
+        rgba(0,255,135,0.18) 0%,
         rgba(0,229,255,0.06) 45%,
         transparent 70%
       );
@@ -378,18 +378,18 @@
       background:
         radial-gradient(circle at 30% 25%,
           rgba(255,255,255,0.95) 0%,
-          rgba(200,80,255,1) 18%,
-          rgba(140,0,255,1) 38%,
-          rgba(60,0,180,1) 58%,
-          rgba(10,0,40,1) 78%,
+          rgba(100,255,160,1) 15%,
+          rgba(0,255,100,1) 32%,
+          rgba(0,160,60,1) 52%,
+          rgba(0,40,15,1) 72%,
           #000 100%
         );
       box-shadow:
-        0 0 0 1px rgba(179,0,255,0.5),
-        0 0 30px rgba(179,0,255,0.9),
-        0 0 70px rgba(179,0,255,0.6),
-        0 0 140px rgba(179,0,255,0.3),
-        0 0 240px rgba(179,0,255,0.12),
+        0 0 0 1px rgba(0,255,135,0.6),
+        0 0 30px rgba(0,255,135,1),
+        0 0 70px rgba(0,255,135,0.7),
+        0 0 140px rgba(0,255,135,0.35),
+        0 0 240px rgba(0,255,135,0.15),
         inset 0 0 80px rgba(0,0,0,0.6);
       transition: box-shadow 0.3s;
     }
@@ -428,18 +428,18 @@
     @keyframes neon-pulse {
       from {
         box-shadow:
-          0 0 0 1px rgba(179,0,255,0.5),
-          0 0 30px rgba(179,0,255,0.9),
-          0 0 70px rgba(179,0,255,0.6),
-          0 0 140px rgba(179,0,255,0.3);
+          0 0 0 1px rgba(0,255,135,0.5),
+          0 0 30px rgba(0,255,135,0.9),
+          0 0 70px rgba(0,255,135,0.6),
+          0 0 140px rgba(0,255,135,0.3);
       }
       to {
         box-shadow:
-          0 0 0 1px rgba(179,0,255,0.8),
-          0 0 50px rgba(200,0,255,1),
-          0 0 100px rgba(179,0,255,0.8),
+          0 0 0 1px rgba(0,255,135,0.8),
+          0 0 50px rgba(0,255,135,1),
+          0 0 100px rgba(0,255,135,0.8),
           0 0 200px rgba(0,229,255,0.4),
-          0 0 300px rgba(179,0,255,0.15);
+          0 0 300px rgba(0,255,135,0.15);
         transform: scale(1.05);
       }
     }
@@ -461,7 +461,7 @@
     .ring-a {
       width: 420px; height: 420px;
       margin: -210px 0 0 -210px;
-      border-color: rgba(179,0,255,0.25);
+      border-color: rgba(0,255,135,0.25);
       animation: ringspin 9s linear infinite;
     }
 
@@ -505,7 +505,7 @@
 
     .dot-purple {
       background: var(--neon-purple);
-      box-shadow: 0 0 16px var(--neon-purple), 0 0 32px rgba(179,0,255,0.5);
+      box-shadow: 0 0 16px var(--neon-purple), 0 0 32px rgba(0,255,135,0.5);
     }
 
     .dot-cyan {
@@ -756,7 +756,7 @@
       position: fixed;
       width: 300px; height: 300px;
       border-radius: 50%;
-      background: radial-gradient(circle, rgba(179,0,255,0.05) 0%, transparent 70%);
+      background: radial-gradient(circle, rgba(0,255,135,0.05) 0%, transparent 70%);
       pointer-events: none;
       z-index: 1;
       transform: translate(-50%, -50%);
@@ -1010,9 +1010,9 @@
     pos[i*3+1] = (Math.random()-.5)*100;
     pos[i*3+2] = (Math.random()-.5)*50;
     const t = Math.random();
-    if (t < 0.6) { col[i*3]=0.7; col[i*3+1]=0; col[i*3+2]=1; }
-    else if (t < 0.85) { col[i*3]=0; col[i*3+1]=0.9; col[i*3+2]=1; }
-    else { col[i*3]=1; col[i*3+1]=0; col[i*3+2]=0.67; }
+    if (t < 0.6) { col[i*3]=0; col[i*3+1]=1; col[i*3+2]=0.53; }
+    else if (t < 0.85) { col[i*3]=0.7; col[i*3+1]=1; col[i*3+2]=0; }
+    else { col[i*3]=0; col[i*3+1]=0.9; col[i*3+2]=1; }
   }
   const pg = new THREE.BufferGeometry();
   pg.setAttribute('position', new THREE.BufferAttribute(pos, 3));
@@ -1022,7 +1022,7 @@
 
   // Wireframe sphere
   const wsg = new THREE.IcosahedronGeometry(9, 1);
-  const wsm = new THREE.MeshBasicMaterial({ color: 0x330066, wireframe: true, transparent: true, opacity: 0.06 });
+  const wsm = new THREE.MeshBasicMaterial({ color: 0x003322, wireframe: true, transparent: true, opacity: 0.06 });
   const ws = new THREE.Mesh(wsg, wsm);
   scene.add(ws);
 
