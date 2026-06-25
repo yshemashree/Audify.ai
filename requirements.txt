@@ -4,6 +4,7 @@ uvicorn
 python-dotenv
 requests
 numpy
+torch
 sentence-transformers
 datasets
 soundfile
