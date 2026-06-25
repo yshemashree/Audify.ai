@@ -1,0 +1,656 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Audify.ai — Text to Sound</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=Space+Mono&display=swap');
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg: #060612;
+      --surface: #0d0d2b;
+      --accent: #7c3aed;
+      --accent2: #06b6d4;
+      --accent3: #f59e0b;
+      --text: #e2e8f0;
+      --muted: #64748b;
+      --glow: rgba(124, 58, 237, 0.4);
+      --glow2: rgba(6, 182, 212, 0.3);
+    }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'Space Grotesk', sans-serif;
+      min-height: 100vh;
+      overflow-x: hidden;
+      position: relative;
+    }
+
+    /* Animated background grid */
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background-image:
+        linear-gradient(rgba(124,58,237,0.03) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(124,58,237,0.03) 1px, transparent 1px);
+      background-size: 60px 60px;
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    /* Particle canvas */
+    #particles {
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    .page {
+      position: relative;
+      z-index: 1;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 40px 20px 80px;
+    }
+
+    /* Header */
+    .header {
+      text-align: center;
+      margin-bottom: 48px;
+    }
+
+    .logo {
+      display: inline-flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 12px;
+    }
+
+    .logo-icon {
+      width: 44px;
+      height: 44px;
+      background: linear-gradient(135deg, var(--accent), var(--accent2));
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 22px;
+      box-shadow: 0 0 24px var(--glow);
+    }
+
+    .logo-text {
+      font-size: 2rem;
+      font-weight: 700;
+      background: linear-gradient(135deg, #a78bfa, #67e8f9);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    .tagline {
+      color: var(--muted);
+      font-size: 0.95rem;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+    }
+
+    /* Main card */
+    .card {
+      width: 100%;
+      max-width: 680px;
+      background: rgba(13, 13, 43, 0.8);
+      border: 1px solid rgba(124, 58, 237, 0.2);
+      border-radius: 24px;
+      padding: 40px;
+      backdrop-filter: blur(20px);
+      box-shadow: 0 0 60px rgba(124,58,237,0.08), 0 32px 64px rgba(0,0,0,0.4);
+    }
+
+    /* Orb visualizer */
+    .orb-container {
+      display: flex;
+      justify-content: center;
+      margin-bottom: 40px;
+    }
+
+    .orb-wrapper {
+      position: relative;
+      width: 180px;
+      height: 180px;
+    }
+
+    .orb-ring {
+      position: absolute;
+      inset: -16px;
+      border-radius: 50%;
+      border: 1px solid rgba(124,58,237,0.15);
+      animation: ring-spin 8s linear infinite;
+    }
+
+    .orb-ring::before {
+      content: '';
+      position: absolute;
+      top: -3px;
+      left: 50%;
+      width: 6px;
+      height: 6px;
+      background: var(--accent2);
+      border-radius: 50%;
+      transform: translateX(-50%);
+      box-shadow: 0 0 12px var(--accent2);
+    }
+
+    .orb-ring-2 {
+      position: absolute;
+      inset: -32px;
+      border-radius: 50%;
+      border: 1px solid rgba(6,182,212,0.1);
+      animation: ring-spin 12s linear infinite reverse;
+    }
+
+    .orb-ring-2::before {
+      content: '';
+      position: absolute;
+      bottom: -3px;
+      left: 50%;
+      width: 4px;
+      height: 4px;
+      background: var(--accent3);
+      border-radius: 50%;
+      transform: translateX(-50%);
+      box-shadow: 0 0 8px var(--accent3);
+    }
+
+    .orb {
+      width: 180px;
+      height: 180px;
+      border-radius: 50%;
+      background: radial-gradient(circle at 35% 35%,
+        rgba(167,139,250,0.9),
+        rgba(124,58,237,0.7) 40%,
+        rgba(6,182,212,0.4) 70%,
+        rgba(6,6,18,0.9)
+      );
+      box-shadow:
+        0 0 40px rgba(124,58,237,0.5),
+        0 0 80px rgba(124,58,237,0.2),
+        0 0 120px rgba(6,182,212,0.1),
+        inset 0 0 40px rgba(0,0,0,0.3);
+      position: relative;
+      transition: all 0.3s ease;
+    }
+
+    .orb::after {
+      content: '';
+      position: absolute;
+      top: 18%;
+      left: 22%;
+      width: 30%;
+      height: 20%;
+      background: rgba(255,255,255,0.15);
+      border-radius: 50%;
+      filter: blur(8px);
+    }
+
+    .orb.pulsing {
+      animation: orb-pulse 0.8s ease-in-out infinite alternate;
+    }
+
+    .orb.loading {
+      animation: orb-spin-glow 1.5s ease-in-out infinite;
+    }
+
+    @keyframes orb-pulse {
+      from { box-shadow: 0 0 40px rgba(124,58,237,0.5), 0 0 80px rgba(124,58,237,0.2), inset 0 0 40px rgba(0,0,0,0.3); transform: scale(1); }
+      to   { box-shadow: 0 0 70px rgba(124,58,237,0.8), 0 0 120px rgba(6,182,212,0.4), inset 0 0 40px rgba(0,0,0,0.3); transform: scale(1.06); }
+    }
+
+    @keyframes orb-spin-glow {
+      0%   { box-shadow: 0 0 40px rgba(124,58,237,0.5), 0 0 80px rgba(124,58,237,0.2); filter: hue-rotate(0deg); }
+      50%  { box-shadow: 0 0 80px rgba(6,182,212,0.7), 0 0 120px rgba(6,182,212,0.3); filter: hue-rotate(60deg); }
+      100% { box-shadow: 0 0 40px rgba(124,58,237,0.5), 0 0 80px rgba(124,58,237,0.2); filter: hue-rotate(0deg); }
+    }
+
+    @keyframes ring-spin {
+      from { transform: rotate(0deg); }
+      to   { transform: rotate(360deg); }
+    }
+
+    /* Waveform bars */
+    .waveform {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 4px;
+      margin-bottom: 32px;
+      height: 48px;
+    }
+
+    .bar {
+      width: 4px;
+      border-radius: 4px;
+      background: linear-gradient(to top, var(--accent), var(--accent2));
+      opacity: 0.3;
+      height: 8px;
+      transition: height 0.15s ease;
+    }
+
+    .bar.active {
+      opacity: 1;
+      animation: wave-bar 0.6s ease-in-out infinite alternate;
+    }
+
+    .bar:nth-child(2)  { animation-delay: 0.05s; }
+    .bar:nth-child(3)  { animation-delay: 0.10s; }
+    .bar:nth-child(4)  { animation-delay: 0.15s; }
+    .bar:nth-child(5)  { animation-delay: 0.20s; }
+    .bar:nth-child(6)  { animation-delay: 0.10s; }
+    .bar:nth-child(7)  { animation-delay: 0.05s; }
+    .bar:nth-child(8)  { animation-delay: 0.15s; }
+    .bar:nth-child(9)  { animation-delay: 0.25s; }
+    .bar:nth-child(10) { animation-delay: 0.08s; }
+    .bar:nth-child(11) { animation-delay: 0.18s; }
+    .bar:nth-child(12) { animation-delay: 0.12s; }
+
+    @keyframes wave-bar {
+      from { height: 6px; }
+      to   { height: 40px; }
+    }
+
+    /* Input area */
+    .input-group {
+      display: flex;
+      gap: 12px;
+      margin-bottom: 24px;
+    }
+
+    .input-wrap {
+      flex: 1;
+      position: relative;
+    }
+
+    .input-wrap::before {
+      content: '🎵';
+      position: absolute;
+      left: 16px;
+      top: 50%;
+      transform: translateY(-50%);
+      font-size: 1rem;
+      pointer-events: none;
+    }
+
+    input[type="text"] {
+      width: 100%;
+      padding: 16px 16px 16px 44px;
+      background: rgba(255,255,255,0.04);
+      border: 1px solid rgba(124,58,237,0.25);
+      border-radius: 14px;
+      color: var(--text);
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: 1rem;
+      outline: none;
+      transition: border-color 0.2s, box-shadow 0.2s;
+    }
+
+    input[type="text"]:focus {
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px rgba(124,58,237,0.15);
+    }
+
+    input[type="text"]::placeholder { color: var(--muted); }
+
+    button.generate-btn {
+      padding: 16px 28px;
+      background: linear-gradient(135deg, var(--accent), #5b21b6);
+      border: none;
+      border-radius: 14px;
+      color: white;
+      font-family: 'Space Grotesk', sans-serif;
+      font-weight: 600;
+      font-size: 0.95rem;
+      cursor: pointer;
+      transition: all 0.2s;
+      white-space: nowrap;
+      box-shadow: 0 4px 24px rgba(124,58,237,0.4);
+    }
+
+    button.generate-btn:hover { transform: translateY(-2px); box-shadow: 0 8px 32px rgba(124,58,237,0.5); }
+    button.generate-btn:active { transform: translateY(0); }
+    button.generate-btn:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
+
+    /* Suggestions */
+    .suggestions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-bottom: 28px;
+    }
+
+    .suggestion-label {
+      font-size: 0.75rem;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      width: 100%;
+      margin-bottom: 4px;
+    }
+
+    .chip {
+      padding: 6px 14px;
+      background: rgba(124,58,237,0.08);
+      border: 1px solid rgba(124,58,237,0.2);
+      border-radius: 999px;
+      font-size: 0.82rem;
+      color: #a78bfa;
+      cursor: pointer;
+      transition: all 0.2s;
+      font-family: 'Space Mono', monospace;
+    }
+
+    .chip:hover {
+      background: rgba(124,58,237,0.2);
+      border-color: rgba(124,58,237,0.5);
+      color: #c4b5fd;
+    }
+
+    /* Status */
+    .status {
+      text-align: center;
+      padding: 12px;
+      border-radius: 10px;
+      font-size: 0.875rem;
+      margin-bottom: 20px;
+      display: none;
+    }
+
+    .status.loading {
+      display: block;
+      background: rgba(124,58,237,0.1);
+      border: 1px solid rgba(124,58,237,0.2);
+      color: #a78bfa;
+    }
+
+    .status.success {
+      display: block;
+      background: rgba(6,182,212,0.08);
+      border: 1px solid rgba(6,182,212,0.2);
+      color: #67e8f9;
+    }
+
+    .status.error {
+      display: block;
+      background: rgba(239,68,68,0.08);
+      border: 1px solid rgba(239,68,68,0.2);
+      color: #fca5a5;
+    }
+
+    /* Result panel */
+    .result-panel {
+      display: none;
+      background: rgba(255,255,255,0.02);
+      border: 1px solid rgba(124,58,237,0.15);
+      border-radius: 16px;
+      padding: 24px;
+      margin-top: 8px;
+    }
+
+    .result-panel.visible { display: block; }
+
+    .result-meta {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 14px;
+    }
+
+    .badge {
+      padding: 4px 10px;
+      border-radius: 999px;
+      font-size: 0.72rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      font-family: 'Space Mono', monospace;
+    }
+
+    .badge.retrieved { background: rgba(245,158,11,0.15); color: #fcd34d; border: 1px solid rgba(245,158,11,0.3); }
+    .badge.generated { background: rgba(124,58,237,0.15); color: #a78bfa; border: 1px solid rgba(124,58,237,0.3); }
+
+    .result-description {
+      font-size: 0.9rem;
+      color: var(--muted);
+      line-height: 1.6;
+      margin-bottom: 20px;
+      font-style: italic;
+    }
+
+    audio {
+      width: 100%;
+      border-radius: 10px;
+      filter: invert(1) hue-rotate(180deg) brightness(0.85);
+    }
+
+    /* Footer */
+    .footer {
+      margin-top: 40px;
+      text-align: center;
+      color: var(--muted);
+      font-size: 0.8rem;
+      font-family: 'Space Mono', monospace;
+    }
+
+    .footer span { color: #a78bfa; }
+
+    /* Loading dots */
+    .dots::after {
+      content: '';
+      animation: dots 1.2s steps(4, end) infinite;
+    }
+    @keyframes dots {
+      0%   { content: ''; }
+      25%  { content: '.'; }
+      50%  { content: '..'; }
+      75%  { content: '...'; }
+      100% { content: ''; }
+    }
+  </style>
+</head>
+<body>
+
+<canvas id="particles"></canvas>
+
+<div class="page">
+  <div class="header">
+    <div class="logo">
+      <div class="logo-icon">🔊</div>
+      <div class="logo-text">Audify.ai</div>
+    </div>
+    <p class="tagline">Type a word. Hear the world.</p>
+  </div>
+
+  <div class="card">
+    <!-- Orb -->
+    <div class="orb-container">
+      <div class="orb-wrapper">
+        <div class="orb-ring-2"></div>
+        <div class="orb-ring"></div>
+        <div class="orb" id="orb"></div>
+      </div>
+    </div>
+
+    <!-- Waveform -->
+    <div class="waveform" id="waveform">
+      <div class="bar"></div><div class="bar"></div><div class="bar"></div>
+      <div class="bar"></div><div class="bar"></div><div class="bar"></div>
+      <div class="bar"></div><div class="bar"></div><div class="bar"></div>
+      <div class="bar"></div><div class="bar"></div><div class="bar"></div>
+    </div>
+
+    <!-- Input -->
+    <div class="input-group">
+      <div class="input-wrap">
+        <input type="text" id="promptInput" placeholder="cat, thunder, rain, fire..." maxlength="120" />
+      </div>
+      <button class="generate-btn" id="generateBtn" onclick="generate()">Generate ✦</button>
+    </div>
+
+    <!-- Suggestions -->
+    <div class="suggestions">
+      <div class="suggestion-label">Try these</div>
+      <span class="chip" onclick="tryPrompt('cat')">cat</span>
+      <span class="chip" onclick="tryPrompt('thunder')">thunder</span>
+      <span class="chip" onclick="tryPrompt('ocean waves')">ocean waves</span>
+      <span class="chip" onclick="tryPrompt('campfire')">campfire</span>
+      <span class="chip" onclick="tryPrompt('keyboard typing')">keyboard typing</span>
+      <span class="chip" onclick="tryPrompt('birds at dawn')">birds at dawn</span>
+      <span class="chip" onclick="tryPrompt('wind')">wind</span>
+      <span class="chip" onclick="tryPrompt('heartbeat')">heartbeat</span>
+    </div>
+
+    <!-- Status -->
+    <div class="status" id="status"></div>
+
+    <!-- Result -->
+    <div class="result-panel" id="resultPanel">
+      <div class="result-meta">
+        <span class="badge" id="sourceBadge">generated</span>
+        <span style="font-size:0.8rem; color: var(--muted);">Audify result</span>
+      </div>
+      <p class="result-description" id="resultDescription"></p>
+      <audio id="audioPlayer" controls></audio>
+    </div>
+  </div>
+
+  <div class="footer">
+    Powered by <span>AudioLDM2</span> · <span>smolagents</span> · <span>Mistral-7B</span>
+  </div>
+</div>
+
+<script>
+  // Particle system
+  const canvas = document.getElementById('particles');
+  const ctx = canvas.getContext('2d');
+  let particles = [];
+
+  function resizeCanvas() {
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
+  }
+  resizeCanvas();
+  window.addEventListener('resize', resizeCanvas);
+
+  for (let i = 0; i < 60; i++) {
+    particles.push({
+      x: Math.random() * window.innerWidth,
+      y: Math.random() * window.innerHeight,
+      r: Math.random() * 1.5 + 0.3,
+      dx: (Math.random() - 0.5) * 0.3,
+      dy: (Math.random() - 0.5) * 0.3,
+      opacity: Math.random() * 0.4 + 0.1,
+      color: Math.random() > 0.5 ? '124,58,237' : '6,182,212',
+    });
+  }
+
+  function animateParticles() {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    particles.forEach(p => {
+      p.x += p.dx;
+      p.y += p.dy;
+      if (p.x < 0) p.x = canvas.width;
+      if (p.x > canvas.width) p.x = 0;
+      if (p.y < 0) p.y = canvas.height;
+      if (p.y > canvas.height) p.y = 0;
+      ctx.beginPath();
+      ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
+      ctx.fillStyle = `rgba(${p.color},${p.opacity})`;
+      ctx.fill();
+    });
+    requestAnimationFrame(animateParticles);
+  }
+  animateParticles();
+
+  // UI logic
+  const orb = document.getElementById('orb');
+  const bars = document.querySelectorAll('.bar');
+  const status = document.getElementById('status');
+  const resultPanel = document.getElementById('resultPanel');
+  const audioPlayer = document.getElementById('audioPlayer');
+
+  function setStatus(type, msg) {
+    status.className = `status ${type}`;
+    status.innerHTML = msg;
+  }
+
+  function setWaveform(active) {
+    bars.forEach(b => b.classList.toggle('active', active));
+  }
+
+  function tryPrompt(text) {
+    document.getElementById('promptInput').value = text;
+    document.getElementById('promptInput').focus();
+  }
+
+  document.getElementById('promptInput').addEventListener('keydown', e => {
+    if (e.key === 'Enter') generate();
+  });
+
+  audioPlayer.addEventListener('play',  () => { orb.classList.add('pulsing'); setWaveform(true); });
+  audioPlayer.addEventListener('pause', () => { orb.classList.remove('pulsing'); setWaveform(false); });
+  audioPlayer.addEventListener('ended', () => { orb.classList.remove('pulsing'); setWaveform(false); });
+
+  async function generate() {
+    const prompt = document.getElementById('promptInput').value.trim();
+    if (!prompt) return;
+
+    const btn = document.getElementById('generateBtn');
+    btn.disabled = true;
+    orb.classList.remove('pulsing');
+    orb.classList.add('loading');
+    setWaveform(false);
+    resultPanel.classList.remove('visible');
+    setStatus('loading', '<span class="dots">Generating your sound</span> — this can take 30–60 seconds');
+
+    try {
+      const res = await fetch('http://localhost:8000/generate', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ prompt }),
+      });
+
+      if (!res.ok) throw new Error(`Server error: ${res.status}`);
+      const data = await res.json();
+
+      orb.classList.remove('loading');
+
+      document.getElementById('resultDescription').textContent = data.description;
+      const badge = document.getElementById('sourceBadge');
+      badge.textContent = data.source === 'retrieved' ? '⚡ retrieved' : '✦ generated';
+      badge.className = `badge ${data.source}`;
+
+      if (data.source === 'retrieved' && data.audio.startsWith('http')) {
+        audioPlayer.src = data.audio;
+      } else {
+        audioPlayer.src = `http://localhost:8000/audio?t=${Date.now()}`;
+      }
+
+      resultPanel.classList.add('visible');
+      setStatus('success', `Sound ready · ${data.source === 'retrieved' ? 'Found in library' : 'Synthesised with AudioLDM2'}`);
+      audioPlayer.play().catch(() => {});
+    } catch (err) {
+      orb.classList.remove('loading');
+      setStatus('error', `Something went wrong: ${err.message}`);
+    } finally {
+      btn.disabled = false;
+    }
+  }
+</script>
+</body>
+</html>
