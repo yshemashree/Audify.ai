@@ -138,45 +138,51 @@
     .ticker-item::after { content: '✦'; color: var(--green); font-size: 0.4rem; }
     @keyframes ticker { from { transform: translateX(0); } to { transform: translateX(-50%); } }
 
-    /* FEATURES — flip cards */
+    /* FEATURES — playing card deck */
     .features { position: relative; z-index: 2; padding: 110px 48px; max-width: 1280px; margin: 0 auto; }
     .section-eyebrow { font-family: 'DM Mono', monospace; font-size: 0.7rem; color: var(--green); letter-spacing: 0.14em; text-transform: uppercase; margin-bottom: 18px; display: flex; align-items: center; gap: 10px; }
     .section-eyebrow::before { content: ''; width: 20px; height: 1px; background: var(--green); box-shadow: 0 0 6px var(--green); }
     .section-title { font-family: 'Syne', sans-serif; font-size: clamp(1.8rem, 3vw, 2.6rem); font-weight: 700; letter-spacing: -0.02em; line-height: 1.05; margin-bottom: 56px; }
 
-    .features-grid { display: grid; grid-template-columns: repeat(4,1fr); gap: 16px; }
-
-    /* FLIP CARD */
-    .flip-card { height: 220px; perspective: 900px; cursor: pointer; }
-    .flip-card-inner {
-      position: relative; width: 100%; height: 100%;
-      transform-style: preserve-3d; transition: transform 0.65s cubic-bezier(0.4,0.2,0.2,1);
+    /* CARD DECK */
+    .card-deck-wrap {
+      position: relative; height: 320px;
+      display: flex; align-items: center; justify-content: center;
+      perspective: 1200px;
     }
-    .flip-card:hover .flip-card-inner { transform: rotateY(180deg); }
-    .flip-front, .flip-back {
-      position: absolute; inset: 0;
-      backface-visibility: hidden; -webkit-backface-visibility: hidden;
-      border-radius: 12px; padding: 28px 24px;
-      border: 1px solid var(--border);
-      display: flex; flex-direction: column;
-    }
-    .flip-front {
+    .play-card {
+      position: absolute;
+      width: 220px; height: 300px;
+      border-radius: 16px;
+      border: 1px solid rgba(0,255,135,0.15);
       background: var(--surface);
-      justify-content: flex-end;
-      box-shadow: 0 4px 30px rgba(0,0,0,0.4), inset 0 1px 0 rgba(255,255,255,0.03);
+      box-shadow: 0 8px 40px rgba(0,0,0,0.6), inset 0 1px 0 rgba(255,255,255,0.03);
+      cursor: pointer;
+      transform-style: preserve-3d;
+      /* stacked by default */
+      transform: translateX(0) translateY(0) rotate(0deg);
+      transition: transform 0.75s cubic-bezier(0.34,1.36,0.64,1), box-shadow 0.4s ease, opacity 0.4s ease;
+      opacity: 0;
+      display: flex; flex-direction: column;
+      padding: 28px 22px;
+      user-select: none;
     }
-    .flip-back {
-      background: linear-gradient(135deg, #060f07 0%, #000e08 100%);
-      border-color: rgba(0,255,135,0.2);
-      transform: rotateY(180deg);
-      justify-content: center;
-      box-shadow: 0 4px 30px rgba(0,255,135,0.08), inset 0 1px 0 rgba(0,255,135,0.05);
+    .card-deck-wrap.spread .play-card { opacity: 1; }
+    /* hover lift */
+    .play-card:hover {
+      box-shadow: 0 20px 60px rgba(0,255,135,0.18), 0 0 0 1px rgba(0,255,135,0.25);
+      z-index: 10 !important;
     }
-    .flip-num { font-family: 'DM Mono', monospace; font-size: 0.62rem; color: rgba(0,255,135,0.4); letter-spacing: 0.1em; margin-bottom: auto; }
-    .flip-icon { font-size: 2rem; margin-bottom: 12px; }
-    .flip-title { font-family: 'Syne', sans-serif; font-size: 1rem; font-weight: 700; }
-    .flip-desc { font-size: 0.78rem; color: #aaa; line-height: 1.65; }
-    .flip-back-label { font-family: 'DM Mono', monospace; font-size: 0.6rem; color: var(--green); letter-spacing: 0.12em; text-transform: uppercase; margin-bottom: 10px; }
+    .card-num { font-family: 'DM Mono', monospace; font-size: 0.6rem; color: rgba(0,255,135,0.4); letter-spacing: 0.1em; margin-bottom: auto; }
+    .card-icon { font-size: 2.2rem; margin-bottom: 14px; }
+    .card-title { font-family: 'Syne', sans-serif; font-size: 1rem; font-weight: 700; margin-bottom: 10px; }
+    .card-desc { font-size: 0.76rem; color: #888; line-height: 1.6; }
+    .card-glow {
+      position: absolute; inset: 0; border-radius: 16px; pointer-events: none;
+      background: linear-gradient(135deg, rgba(0,255,135,0.06) 0%, transparent 60%);
+      opacity: 0; transition: opacity 0.3s;
+    }
+    .play-card:hover .card-glow { opacity: 1; }
 
     /* STEPS */
     .steps-section { position: relative; z-index: 2; padding: 0 48px 110px; max-width: 1280px; margin: 0 auto; }
@@ -205,14 +211,16 @@
       .hero { grid-template-columns: 1fr; padding: 100px 24px 60px; text-align: center; }
       .hero-left { align-items: center; }
       .hero-right { height: 300px; }
-      .features-grid { grid-template-columns: 1fr 1fr; }
       .steps-grid { grid-template-columns: 1fr; }
       nav { padding: 16px 24px; }
       .nav-links { display: none; }
       .features, .steps-section { padding-left: 24px; padding-right: 24px; }
       footer { flex-direction: column; gap: 10px; padding: 28px 24px; }
+      .card-deck-wrap { height: 560px; flex-direction: column; }
     }
-    @media (max-width: 600px) { .features-grid { grid-template-columns: 1fr; } }
+    @media (max-width: 600px) {
+      .card-deck-wrap { height: 640px; }
+    }
   </style>
 </head>
 <body>
@@ -309,62 +317,39 @@
   </div>
 </div>
 
-<!-- FEATURES — flip cards -->
+<!-- FEATURES — playing card deck -->
 <section class="features" id="features">
   <div class="section-eyebrow">Capabilities</div>
   <h2 class="section-title">What Audify does</h2>
-  <div class="features-grid">
-    <div class="flip-card">
-      <div class="flip-card-inner">
-        <div class="flip-front">
-          <div class="flip-num">01</div>
-          <div class="flip-icon">🧠</div>
-          <div class="flip-title">Prompt Expansion</div>
-        </div>
-        <div class="flip-back">
-          <div class="flip-back-label">How it works</div>
-          <p class="flip-desc">Your one-word input is expanded into a vivid, detailed sonic description — texture, space, and intensity included.</p>
-        </div>
-      </div>
+
+  <div class="card-deck-wrap" id="cardDeck">
+    <div class="play-card" id="card0" style="z-index:4">
+      <div class="card-glow"></div>
+      <div class="card-num">01</div>
+      <div class="card-icon">🧠</div>
+      <div class="card-title">Prompt Expansion</div>
+      <p class="card-desc">Your one-word input is expanded into a vivid sonic description — texture, space, and intensity included.</p>
     </div>
-    <div class="flip-card">
-      <div class="flip-card-inner">
-        <div class="flip-front">
-          <div class="flip-num">02</div>
-          <div class="flip-icon">🔍</div>
-          <div class="flip-title">Semantic Search</div>
-        </div>
-        <div class="flip-back">
-          <div class="flip-back-label">How it works</div>
-          <p class="flip-desc">Your prompt is matched against a library of real recordings. Close match? Instant result — no generation wait.</p>
-        </div>
-      </div>
+    <div class="play-card" id="card1" style="z-index:3">
+      <div class="card-glow"></div>
+      <div class="card-num">02</div>
+      <div class="card-icon">🔍</div>
+      <div class="card-title">Semantic Search</div>
+      <p class="card-desc">Matched against a library of real recordings. Close match? Instant result — no generation wait.</p>
     </div>
-    <div class="flip-card">
-      <div class="flip-card-inner">
-        <div class="flip-front">
-          <div class="flip-num">03</div>
-          <div class="flip-icon">⚡</div>
-          <div class="flip-title">AI Generation</div>
-        </div>
-        <div class="flip-back">
-          <div class="flip-back-label">How it works</div>
-          <p class="flip-desc">ElevenLabs AI synthesises a unique, high-fidelity audio clip from any description — in seconds.</p>
-        </div>
-      </div>
+    <div class="play-card" id="card2" style="z-index:2">
+      <div class="card-glow"></div>
+      <div class="card-num">03</div>
+      <div class="card-icon">⚡</div>
+      <div class="card-title">AI Generation</div>
+      <p class="card-desc">ElevenLabs AI synthesises a unique, high-fidelity audio clip from any description — in seconds.</p>
     </div>
-    <div class="flip-card">
-      <div class="flip-card-inner">
-        <div class="flip-front">
-          <div class="flip-num">04</div>
-          <div class="flip-icon">🎨</div>
-          <div class="flip-title">No Limits</div>
-        </div>
-        <div class="flip-back">
-          <div class="flip-back-label">How it works</div>
-          <p class="flip-desc">Sounds that don't exist. Emotions. Fictional worlds. Describe anything and Audify will render it into audio.</p>
-        </div>
-      </div>
+    <div class="play-card" id="card3" style="z-index:1">
+      <div class="card-glow"></div>
+      <div class="card-num">04</div>
+      <div class="card-icon">🎨</div>
+      <div class="card-title">No Limits</div>
+      <p class="card-desc">Sounds that don't exist. Emotions. Fictional worlds. Describe anything and Audify renders it.</p>
     </div>
   </div>
 </section>
@@ -563,6 +548,71 @@ document.addEventListener('mousemove', e => { cg.style.left = e.clientX+'px'; cg
 
     renderer.render(scene, cam);
   })();
+})();
+
+// ─── PLAYING CARD DECK SPREAD ───
+(function() {
+  // fan positions: [translateX, translateY, rotate(deg), translateZ]
+  const fanPos = [
+    { x: -330, y: 20, r: -18, z: 0 },
+    { x: -110, y: -14, r: -6,  z: 0 },
+    { x:  110, y: -14, r:  6,  z: 0 },
+    { x:  330, y: 20, r:  18, z: 0 },
+  ];
+
+  const deck = document.getElementById('cardDeck');
+  const cards = Array.from(deck.querySelectorAll('.play-card'));
+
+  // Apply stacked (hidden) state initially
+  cards.forEach((c, i) => {
+    c.style.transform = `translateX(${i * 3}px) translateY(${i * -3}px) rotate(${i * 1.5}deg)`;
+    c.style.opacity = '0';
+  });
+
+  let spread = false;
+  function isMobile() { return window.innerWidth < 700; }
+
+  const mobileFan = [
+    { x: 0, y: -210, r: 0 },
+    { x: 0, y: -70,  r: 0 },
+    { x: 0, y:  70,  r: 0 },
+    { x: 0, y:  210, r: 0 },
+  ];
+
+  function activeFan() { return isMobile() ? mobileFan : fanPos; }
+
+  function doSpread() {
+    if (spread) return;
+    spread = true;
+    deck.classList.add('spread');
+    const fan = activeFan();
+    cards.forEach((c, i) => {
+      const p = fan[i];
+      setTimeout(() => {
+        c.style.transform = `translateX(${p.x}px) translateY(${p.y}px) rotate(${p.r}deg)`;
+        c.style.opacity = '1';
+      }, i * 80);
+    });
+  }
+
+  const deckObs = new IntersectionObserver(entries => {
+    entries.forEach(en => { if (en.isIntersecting) { doSpread(); deckObs.unobserve(en.target); } });
+  }, { threshold: 0.25 });
+  deckObs.observe(deck);
+
+  // hover: lift hovered card slightly
+  cards.forEach((c, i) => {
+    c.addEventListener('mouseenter', () => {
+      if (!spread) return;
+      const p = activeFan()[i];
+      c.style.transform = `translateX(${p.x}px) translateY(${p.y - 22}px) rotate(${p.r * 0.4}deg) scale(1.04)`;
+    });
+    c.addEventListener('mouseleave', () => {
+      if (!spread) return;
+      const p = activeFan()[i];
+      c.style.transform = `translateX(${p.x}px) translateY(${p.y}px) rotate(${p.r}deg)`;
+    });
+  });
 })();
 
 // ─── SCROLL REVEAL ───
