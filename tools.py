@@ -9,8 +9,27 @@ from smolagents import tool
 
 load_dotenv()
 HF_TOKEN = os.getenv("HUGGINGFACE_API_TOKEN")
-HEADERS = {"Authorization": f"Bearer {HF_TOKEN}"}
 ELEVENLABS_KEY = os.getenv("ELEVENLABS_API_KEY")
+
+HF_API_URL = "https://router.huggingface.co/novita/v3/openai/chat/completions"
+HF_MODEL = "Qwen/Qwen2.5-72B-Instruct"
+
+SOUND_PROMPT_SYSTEM = """You are an expert sound designer and audio engineer writing prompts for ElevenLabs sound generation AI.
+
+Given a user's sound request, output ONLY a single vivid prompt string — no explanation, no quotes, no extra text.
+
+Rules:
+- Describe the sound in concrete acoustic terms: texture, pitch, rhythm, space, distance, material, intensity
+- Include acoustic environment (indoors, outdoors, reverb, echo, close-mic, distant)
+- Mention layered elements if relevant (e.g. background ambience + foreground event)
+- Keep it under 40 words
+- Never say "sound of" — describe it directly
+- Make it specific enough that an AI can synthesize it accurately
+
+Examples:
+User: cat → soft indoor meow, slight upward pitch inflection, close-mic, domestic shorthair, light room reverb
+User: thunderstorm → deep rolling thunder crack overhead, heavy rain on leaves, distant rumble tail, wide outdoor reverb
+User: robot booting up → rising electronic hum, servo whir, three ascending beep tones, industrial hiss, metallic resonance"""
 
 SOUND_DB = []
 
@@ -316,43 +335,74 @@ def generate_local_audio(prompt: str, path: str = "generated_audio.wav") -> str:
     write_wav(path, samples)
     return path
 
+def _llm_elaborate(prompt: str) -> str:
+    """Call Qwen via HF router to generate a precise ElevenLabs sound prompt."""
+    if not HF_TOKEN:
+        return None
+    try:
+        response = requests.post(
+            HF_API_URL,
+            headers={"Authorization": f"Bearer {HF_TOKEN}", "Content-Type": "application/json"},
+            json={
+                "model": HF_MODEL,
+                "messages": [
+                    {"role": "system", "content": SOUND_PROMPT_SYSTEM},
+                    {"role": "user", "content": prompt},
+                ],
+                "max_tokens": 80,
+                "temperature": 0.7,
+            },
+            timeout=15,
+        )
+        if response.status_code == 200:
+            return response.json()["choices"][0]["message"]["content"].strip()
+    except Exception:
+        pass
+    return None
+
 @tool
 def elaborate_prompt(prompt: str) -> str:
     """
-    Takes a short user prompt like 'cat' or 'thunder' and expands it into
-    a detailed, descriptive sentence for better audio search and generation accuracy.
+    Takes a short user prompt and expands it into a detailed acoustic description
+    optimised for ElevenLabs sound generation.
 
     Args:
         prompt: The short user input describing a sound (e.g. 'cat', 'rain', 'thunder').
 
     Returns:
-        A detailed description of the sound as a string.
+        A detailed acoustic description of the sound as a string.
     """
+    # Try LLM first
+    result = _llm_elaborate(prompt)
+    if result:
+        return result
+
+    # Keyword fallback if no HF token or API failure
     expansions = {
-        "cat": "a cat meowing softly indoors",
-        "rain": "heavy rain falling on a rooftop",
-        "thunder": "thunder rumbling in a distant storm",
-        "storm": "a raging thunderstorm with heavy rain and thunder",
-        "ocean": "ocean waves crashing gently on a sandy beach",
-        "dog": "a dog barking loudly outside",
-        "birds": "birds chirping in a forest at dawn",
-        "fire": "fire crackling in a cozy fireplace",
-        "campfire": "a campfire crackling under a night sky",
-        "clock": "a clock ticking quietly in a silent room",
-        "wind": "wind blowing softly through trees",
-        "keyboard": "keyboard typing rapidly",
-        "footsteps": "footsteps walking on a wooden floor",
-        "car": "a car engine revving and driving away",
-        "water": "water flowing gently in a stream",
-        "crowd": "a crowd of people talking in a busy place",
-        "heartbeat": "a steady human heartbeat",
-        "wave": "waves rolling onto a sandy shore",
+        "cat": "soft indoor meow, slight upward pitch, close-mic, light reverb",
+        "rain": "heavy rain on a rooftop, steady white-noise wash, occasional drip",
+        "thunder": "deep rolling thunder crack, heavy rain on leaves, wide outdoor reverb",
+        "storm": "violent thunderstorm, lightning crack, torrential rain, howling wind",
+        "ocean": "slow waves breaking on sand, foam hiss, seagull distant, open air",
+        "dog": "sharp medium-dog bark, outdoor echo, three bursts with short pauses",
+        "birds": "dawn chorus, multiple bird species chirping, forest reverb, gentle",
+        "fire": "dry wood crackling, occasional pop, warm low rumble, close-mic",
+        "campfire": "campfire crackling under open sky, wood pop, night ambience",
+        "clock": "mechanical clock ticking, quiet room, steady 1Hz rhythm, close-mic",
+        "wind": "gusty wind through tree leaves, low whistle, outdoor open field",
+        "keyboard": "rapid mechanical keyboard typing, clicks and clacks, office room",
+        "footsteps": "footsteps on hardwood floor, steady walking pace, slight echo",
+        "car": "car engine cold start, rev, drive away fade, outdoor reverb",
+        "water": "water stream over rocks, gentle gurgle, outdoor natural reverb",
+        "crowd": "busy indoor crowd murmur, overlapping voices, restaurant ambience",
+        "heartbeat": "steady human heartbeat 72bpm, close-mic, two-thud rhythm",
+        "wave": "ocean wave rolling onto shore, foam hiss, receding water pull",
     }
     prompt_lower = prompt.lower().strip()
     for key, description in expansions.items():
         if key in prompt_lower:
             return description
-    return f"a realistic, high-quality sound of {prompt}"
+    return f"realistic high-fidelity sound of {prompt}, natural acoustic environment, clear recording"
 
 @tool
 def search_audio(elaborated_prompt: str) -> str:
@@ -402,7 +452,7 @@ def generate_audio(elaborated_prompt: str) -> str:
                     "xi-api-key": ELEVENLABS_KEY,
                     "Content-Type": "application/json",
                 },
-                json={"text": elaborated_prompt, "duration_seconds": 4.0, "prompt_influence": 0.3},
+                json={"text": elaborated_prompt, "duration_seconds": 5.0, "prompt_influence": 0.5},
                 timeout=30,
             )
             if response.status_code == 200:
