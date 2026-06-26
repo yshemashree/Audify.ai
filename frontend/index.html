@@ -269,6 +269,7 @@
         </div>
         <p class="result-desc" id="resultDesc"></p>
         <audio id="player" controls></audio>
+        <a id="downloadBtn" style="display:none;margin-top:10px;display:none;align-items:center;gap:6px;background:rgba(0,255,135,0.1);border:1px solid rgba(0,255,135,0.3);color:#00ff87;padding:8px 16px;border-radius:8px;font-size:0.8rem;text-decoration:none;font-family:'DM Mono',monospace;" download="audify_sound.wav">↓ Download</a>
       </div>
     </div>
   </div>
@@ -629,11 +630,14 @@ async function generate() {
     badge.textContent = data.source === 'retrieved' ? '⚡ retrieved' : '✦ generated';
     badge.className = 'badge ' + data.source;
 
-    if (data.source === 'retrieved' && data.audio?.startsWith('http')) {
-      player.src = data.audio;
-    } else {
-      player.src = base + '/audio?t=' + Date.now();
-    }
+    const audioSrc = (data.source === 'retrieved' && data.audio?.startsWith('http'))
+      ? data.audio
+      : base + '/audio?t=' + Date.now();
+    player.src = audioSrc;
+
+    const dlBtn = document.getElementById('downloadBtn');
+    dlBtn.href = audioSrc;
+    dlBtn.style.display = 'inline-flex';
 
     document.getElementById('resultBox').className = 'result-box show';
     setStatus('success', data.source === 'retrieved' ? '⚡ Retrieved from library' : '✦ Synthesised with AudioLDM2', false);
