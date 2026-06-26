@@ -91,7 +91,7 @@ def generate_audio(elaborated_prompt: str) -> str:
     Returns:
         The file path to the generated .wav audio file as a string.
     """
-    api_url = "https://api-inference.huggingface.co/models/cvssp/audioldm2"
+    api_url = "https://router.huggingface.co/hf-inference/models/cvssp/audioldm2"
     for attempt in range(4):
         response = requests.post(
             api_url,
