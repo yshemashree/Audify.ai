@@ -5,7 +5,6 @@ import math
 import random
 import requests
 from dotenv import load_dotenv
-from smolagents import tool
 
 load_dotenv()
 HF_TOKEN = os.getenv("HUGGINGFACE_API_TOKEN")
@@ -360,7 +359,6 @@ def _llm_elaborate(prompt: str) -> str:
         pass
     return None
 
-@tool
 def elaborate_prompt(prompt: str) -> str:
     """
     Takes a short user prompt and expands it into a detailed acoustic description
@@ -404,7 +402,6 @@ def elaborate_prompt(prompt: str) -> str:
             return description
     return f"realistic high-fidelity sound of {prompt}, natural acoustic environment, clear recording"
 
-@tool
 def search_audio(elaborated_prompt: str) -> str:
     """
     Searches a database of existing audio clips using semantic similarity.
@@ -429,7 +426,6 @@ def search_audio(elaborated_prompt: str) -> str:
         return best_url
     return "NO_MATCH"
 
-@tool
 def generate_audio(elaborated_prompt: str) -> str:
     """
     Generates a new audio clip from scratch. Tries ElevenLabs sound generation

@@ -1,9 +1,6 @@
-smolagents
 fastapi
 uvicorn
 python-dotenv
 requests
 numpy
-datasets
-soundfile
 python-multipart
