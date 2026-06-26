@@ -9,18 +9,7 @@ load_dotenv()
 HF_TOKEN = os.getenv("HUGGINGFACE_API_TOKEN")
 HEADERS = {"Authorization": f"Bearer {HF_TOKEN}"}
 
-SOUND_DB = [
-    {"description": "a cat meowing softly indoors", "url": "https://www.soundjay.com/animals/cat-meow-1.wav"},
-    {"description": "heavy rain falling on a rooftop", "url": "https://www.soundjay.com/nature/rain-01.wav"},
-    {"description": "thunder rumbling in a storm", "url": "https://www.soundjay.com/nature/thunder-1.wav"},
-    {"description": "ocean waves crashing on a beach", "url": "https://www.soundjay.com/nature/waves-1.wav"},
-    {"description": "a dog barking loudly outside", "url": "https://www.soundjay.com/animals/dog-bark-1.wav"},
-    {"description": "birds chirping in a forest at dawn", "url": "https://www.soundjay.com/nature/birds-1.wav"},
-    {"description": "fire crackling in a fireplace", "url": "https://www.soundjay.com/nature/fire-1.wav"},
-    {"description": "a clock ticking quietly", "url": "https://www.soundjay.com/clock/clock-ticking-1.wav"},
-    {"description": "wind blowing through trees", "url": "https://www.soundjay.com/nature/wind-1.wav"},
-    {"description": "keyboard typing rapidly", "url": "https://www.soundjay.com/office/keyboard-1.wav"},
-]
+SOUND_DB = []
 
 def keyword_similarity(query: str, description: str) -> float:
     query_words = set(query.lower().split())
