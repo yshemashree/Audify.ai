@@ -2,8 +2,6 @@ import os
 import json
 import time
 import requests
-import numpy as np
-import soundfile as sf
 from dotenv import load_dotenv
 from smolagents import tool
 
@@ -24,30 +22,13 @@ SOUND_DB = [
     {"description": "keyboard typing rapidly", "url": "https://www.soundjay.com/office/keyboard-1.wav"},
 ]
 
-def get_embedding(text: str) -> list:
-    api_url = "https://api-inference.huggingface.co/pipeline/feature-extraction/sentence-transformers/all-MiniLM-L6-v2"
-    for attempt in range(3):
-        response = requests.post(api_url, headers=HEADERS, json={"inputs": text})
-        if response.status_code == 503:
-            time.sleep(20)
-            continue
-        if response.status_code == 200:
-            data = response.json()
-            if isinstance(data[0], list):
-                return data[0]
-            return data
-    return []
-
-def cosine_similarity(a: list, b: list) -> float:
-    a, b = np.array(a), np.array(b)
-    if a.ndim > 1:
-        a = a.mean(axis=0)
-    if b.ndim > 1:
-        b = b.mean(axis=0)
-    norm_a, norm_b = np.linalg.norm(a), np.linalg.norm(b)
-    if norm_a == 0 or norm_b == 0:
+def keyword_similarity(query: str, description: str) -> float:
+    query_words = set(query.lower().split())
+    desc_words = set(description.lower().split())
+    if not query_words or not desc_words:
         return 0.0
-    return float(np.dot(a, b) / (norm_a * norm_b))
+    intersection = query_words & desc_words
+    return len(intersection) / len(query_words | desc_words)
 
 @tool
 def elaborate_prompt(prompt: str) -> str:
@@ -61,29 +42,28 @@ def elaborate_prompt(prompt: str) -> str:
     Returns:
         A detailed description of the sound as a string.
     """
-    api_url = "https://api-inference.huggingface.co/models/mistralai/Mistral-7B-Instruct-v0.3"
-    instruction = (
-        f"[INST] You are a sound design expert. Expand this into one vivid, descriptive sentence "
-        f"describing the sound for audio generation. Be specific about texture, environment, and intensity. "
-        f"Only output the description, nothing else.\n\nSound: {prompt} [/INST]"
-    )
-    for attempt in range(3):
-        response = requests.post(
-            api_url,
-            headers=HEADERS,
-            json={"inputs": instruction, "parameters": {"max_new_tokens": 80, "temperature": 0.7}},
-        )
-        if response.status_code == 503:
-            time.sleep(25)
-            continue
-        if response.status_code == 200:
-            result = response.json()
-            if isinstance(result, list) and "generated_text" in result[0]:
-                text = result[0]["generated_text"]
-                if "[/INST]" in text:
-                    text = text.split("[/INST]")[-1].strip()
-                return text.strip()
-    return f"a realistic sound of {prompt}"
+    expansions = {
+        "cat": "a cat meowing softly indoors",
+        "rain": "heavy rain falling on a rooftop",
+        "thunder": "thunder rumbling in a distant storm",
+        "ocean": "ocean waves crashing gently on a sandy beach",
+        "dog": "a dog barking loudly outside",
+        "birds": "birds chirping in a forest at dawn",
+        "fire": "fire crackling in a cozy fireplace",
+        "clock": "a clock ticking quietly in a silent room",
+        "wind": "wind blowing softly through trees",
+        "keyboard": "keyboard typing rapidly",
+        "footsteps": "footsteps walking on a wooden floor",
+        "car": "a car engine revving and driving away",
+        "water": "water flowing gently in a stream",
+        "crowd": "a crowd of people talking in a busy place",
+        "music": "ambient background music playing softly",
+    }
+    prompt_lower = prompt.lower().strip()
+    for key, description in expansions.items():
+        if key in prompt_lower:
+            return description
+    return f"a realistic, high-quality sound of {prompt}"
 
 @tool
 def search_audio(elaborated_prompt: str) -> str:
@@ -97,23 +77,16 @@ def search_audio(elaborated_prompt: str) -> str:
     Returns:
         A URL string if a match is found, or 'NO_MATCH' if no close match exists.
     """
-    query_embedding = get_embedding(elaborated_prompt)
-    if not query_embedding:
-        return "NO_MATCH"
-
     best_score = 0.0
     best_url = None
 
     for item in SOUND_DB:
-        db_embedding = get_embedding(item["description"])
-        if not db_embedding:
-            continue
-        score = cosine_similarity(query_embedding, db_embedding)
+        score = keyword_similarity(elaborated_prompt, item["description"])
         if score > best_score:
             best_score = score
             best_url = item["url"]
 
-    if best_score >= 0.75:
+    if best_score >= 0.3:
         return best_url
     return "NO_MATCH"
 
