@@ -123,12 +123,150 @@ def generate_heartbeat(duration=5, sr=44100):
                     samples[pos + j] += clamp(math.sin(2 * math.pi * 80 * t) * env * 0.9)
     return [clamp(s) for s in samples]
 
-def generate_tone(duration=5, sr=44100, freq=440):
+def generate_cat(duration=4, sr=44100):
+    samples = [0.0] * (duration * sr)
+    # Two meow calls: rising then falling frequency sweep
+    for meow_start in [int(sr * 0.3), int(sr * 2.0)]:
+        meow_len = int(sr * 0.8)
+        for i in range(meow_len):
+            t = i / sr
+            # Frequency sweep 600Hz -> 1200Hz -> 800Hz
+            progress = i / meow_len
+            if progress < 0.5:
+                freq = 600 + 1200 * progress
+            else:
+                freq = 1800 - 1000 * progress
+            env = math.sin(math.pi * progress) ** 0.5
+            phase = 2 * math.pi * freq * t
+            s = (math.sin(phase) * 0.5 + math.sin(2 * phase) * 0.2 + math.sin(3 * phase) * 0.1)
+            pos = meow_start + i
+            if pos < len(samples):
+                samples[pos] += clamp(s * env * 0.7)
+    return [clamp(s) for s in samples]
+
+def generate_dog(duration=4, sr=44100):
+    samples = [0.0] * (duration * sr)
+    bark_times = [int(sr * 0.2), int(sr * 1.0), int(sr * 1.8)]
+    for bark_start in bark_times:
+        bark_len = int(sr * 0.3)
+        for i in range(bark_len):
+            t = i / sr
+            progress = i / bark_len
+            freq = 280 - 80 * progress
+            env = math.exp(-progress * 6) * (1 - math.exp(-progress * 30))
+            noise = random.uniform(-0.3, 0.3)
+            s = math.sin(2 * math.pi * freq * t) * 0.6 + noise
+            pos = bark_start + i
+            if pos < len(samples):
+                samples[pos] += clamp(s * env * 0.8)
+    return [clamp(s) for s in samples]
+
+def generate_bird(duration=4, sr=44100):
+    samples = [0.0] * (duration * sr)
+    chirp_times = [int(sr * t) for t in [0.1, 0.5, 0.9, 1.4, 1.8, 2.3, 2.7, 3.1, 3.5]]
+    for start in chirp_times:
+        chirp_len = int(sr * 0.12)
+        base_freq = random.choice([2800, 3200, 3600, 4000])
+        for i in range(chirp_len):
+            t = i / sr
+            progress = i / chirp_len
+            freq = base_freq + 800 * math.sin(math.pi * progress)
+            env = math.sin(math.pi * progress) ** 2
+            s = math.sin(2 * math.pi * freq * t)
+            pos = start + i
+            if pos < len(samples):
+                samples[pos] += clamp(s * env * 0.6)
+    return [clamp(s) for s in samples]
+
+def generate_keyboard(duration=4, sr=44100):
+    samples = [0.0] * (duration * sr)
+    # Random keystrokes at ~5 per second
+    click_interval = sr // 5
+    for start in range(0, len(samples) - sr, click_interval + random.randint(-sr//20, sr//20)):
+        click_len = int(sr * 0.015)
+        for i in range(click_len):
+            progress = i / click_len
+            env = math.exp(-progress * 80)
+            freq = random.choice([3000, 4000, 5000])
+            s = math.sin(2 * math.pi * freq * i / sr) + random.uniform(-0.2, 0.2)
+            pos = start + i
+            if pos < len(samples):
+                samples[pos] += clamp(s * env * 0.4)
+    return [clamp(s) for s in samples]
+
+def generate_clock(duration=5, sr=44100):
+    samples = [0.0] * (duration * sr)
+    tick_interval = sr  # 1 tick per second
+    for start in range(0, len(samples), tick_interval):
+        tick_len = int(sr * 0.02)
+        for i in range(tick_len):
+            progress = i / tick_len
+            env = math.exp(-progress * 100)
+            s = math.sin(2 * math.pi * 2000 * i / sr)
+            pos = start + i
+            if pos < len(samples):
+                samples[pos] += clamp(s * env * 0.7)
+    return [clamp(s) for s in samples]
+
+def generate_footsteps(duration=5, sr=44100):
+    samples = [0.0] * (duration * sr)
+    step_interval = int(sr * 0.55)
+    for start in range(0, len(samples) - sr, step_interval):
+        step_len = int(sr * 0.08)
+        for i in range(step_len):
+            progress = i / step_len
+            env = math.exp(-progress * 30)
+            noise = random.uniform(-1.0, 1.0)
+            thud = math.sin(2 * math.pi * 120 * i / sr)
+            s = thud * 0.6 + noise * 0.4
+            pos = start + i
+            if pos < len(samples):
+                samples[pos] += clamp(s * env * 0.8)
+    return [clamp(s) for s in samples]
+
+def generate_car(duration=5, sr=44100):
+    samples = []
+    for i in range(duration * sr):
+        t = i / sr
+        # Engine: rising RPM then settling
+        rpm_freq = 80 + 120 * min(t / 2.0, 1.0) * math.exp(-t * 0.3)
+        engine = (math.sin(2 * math.pi * rpm_freq * t) * 0.4 +
+                  math.sin(2 * math.pi * rpm_freq * 2 * t) * 0.2 +
+                  random.uniform(-0.1, 0.1))
+        samples.append(clamp(engine * 0.7))
+    return samples
+
+def generate_water(duration=5, sr=44100):
     n = duration * sr
-    return [math.sin(2 * math.pi * freq * i / sr) * 0.6 for i in range(n)]
+    samples = []
+    prev = 0.0
+    for i in range(n):
+        t = i / sr
+        w = random.uniform(-1.0, 1.0)
+        s = 0.2 * w + 0.8 * prev
+        prev = s
+        ripple = 0.7 + 0.3 * math.sin(2 * math.pi * 0.8 * t)
+        samples.append(clamp(s * ripple * 0.75))
+    return samples
+
+def generate_crowd(duration=5, sr=44100):
+    n = duration * sr
+    samples = []
+    # Multiple noise sources at speech frequencies
+    prev1, prev2, prev3 = 0.0, 0.0, 0.0
+    for i in range(n):
+        t = i / sr
+        w = random.uniform(-1.0, 1.0)
+        prev1 = 0.4 * w + 0.6 * prev1
+        prev2 = 0.35 * w + 0.65 * prev2
+        prev3 = 0.3 * w + 0.7 * prev3
+        s = (prev1 * 0.4 + prev2 * 0.3 + prev3 * 0.3)
+        mod = 0.6 + 0.4 * math.sin(2 * math.pi * 0.2 * t + random.uniform(0, 0.1))
+        samples.append(clamp(s * mod * 0.7))
+    return samples
 
 def generate_noise(duration=5, sr=44100):
-    return [random.uniform(-0.5, 0.5) for _ in range(duration * sr)]
+    return [random.uniform(-0.4, 0.4) for _ in range(duration * sr)]
 
 SOUND_RECIPES = {
     "rain": generate_rain,
@@ -143,6 +281,25 @@ SOUND_RECIPES = {
     "heartbeat": generate_heartbeat,
     "heart": generate_heartbeat,
     "pulse": generate_heartbeat,
+    "cat": generate_cat,
+    "meow": generate_cat,
+    "dog": generate_dog,
+    "bark": generate_dog,
+    "bird": generate_bird,
+    "chirp": generate_bird,
+    "keyboard": generate_keyboard,
+    "typing": generate_keyboard,
+    "clock": generate_clock,
+    "tick": generate_clock,
+    "footstep": generate_footsteps,
+    "walking": generate_footsteps,
+    "step": generate_footsteps,
+    "car": generate_car,
+    "engine": generate_car,
+    "water": generate_water,
+    "stream": generate_water,
+    "crowd": generate_crowd,
+    "people": generate_crowd,
 }
 
 def generate_local_audio(prompt: str, path: str = "generated_audio.wav") -> str:
