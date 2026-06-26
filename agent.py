@@ -7,7 +7,7 @@ load_dotenv()
 HF_TOKEN = os.getenv("HUGGINGFACE_API_TOKEN")
 
 model = InferenceClientModel(
-    model_id="meta-llama/Llama-3.2-3B-Instruct",
+    model_id="Qwen/Qwen2.5-72B-Instruct",
     token=HF_TOKEN,
 )
 
