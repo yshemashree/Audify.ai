@@ -636,7 +636,7 @@ async function generate() {
     player.src = audioSrc;
 
     const dlBtn = document.getElementById('downloadBtn');
-    dlBtn.href = audioSrc;
+    dlBtn.href = base + '/download?t=' + Date.now();
     dlBtn.style.display = 'inline-flex';
 
     document.getElementById('resultBox').className = 'result-box show';

@@ -41,7 +41,14 @@ async def serve_audio():
     path = "generated_audio.wav"
     if not os.path.exists(path):
         raise HTTPException(status_code=404, detail="No generated audio file found")
-    return FileResponse(path, media_type="audio/wav", filename="audify_output.wav")
+    return FileResponse(path, media_type="audio/wav")
+
+@app.get("/download")
+async def download_audio():
+    path = "generated_audio.wav"
+    if not os.path.exists(path):
+        raise HTTPException(status_code=404, detail="No generated audio file found")
+    return FileResponse(path, media_type="audio/wav", filename="audify_output.wav", headers={"Content-Disposition": "attachment; filename=audify_output.wav"})
 
 @app.get("/health")
 async def health():
