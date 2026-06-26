@@ -9,23 +9,13 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-
     :root {
-      --bg: #000;
-      --green: #00ff87;
-      --green2: #00e5a0;
-      --cyan: #00e5ff;
-      --lime: #aaff00;
-      --white: #fff;
-      --grey: #777;
-      --dim: #222;
-      --surface: #0a0a0a;
-      --border: #111;
+      --bg: #000; --green: #00ff87; --green2: #00e5a0;
+      --cyan: #00e5ff; --white: #fff; --grey: #777;
+      --dim: #1a1a1a; --surface: #080808; --border: #111;
     }
-
     html { scroll-behavior: smooth; }
     body { background: var(--bg); color: var(--white); font-family: 'DM Sans', sans-serif; overflow-x: hidden; }
-
     #bg-canvas { position: fixed; inset: 0; z-index: 0; pointer-events: none; }
 
     /* NAV */
@@ -34,8 +24,8 @@
       display: flex; align-items: center; justify-content: space-between;
       padding: 20px 48px;
       border-bottom: 1px solid var(--border);
-      background: rgba(0,0,0,0.75);
-      backdrop-filter: blur(16px);
+      background: rgba(0,0,0,0.8);
+      backdrop-filter: blur(20px);
     }
     .nav-logo { font-family: 'Syne', sans-serif; font-size: 1.2rem; font-weight: 700; letter-spacing: -0.02em; }
     .nav-logo span { color: var(--green); }
@@ -43,70 +33,57 @@
     .nav-links a { color: var(--grey); text-decoration: none; font-size: 0.875rem; transition: color 0.2s; }
     .nav-links a:hover { color: var(--white); }
     .nav-cta {
-      padding: 8px 18px;
-      background: var(--green);
-      border: none; border-radius: 6px;
+      padding: 8px 18px; background: var(--green); border: none; border-radius: 6px;
       color: #000; font-family: 'DM Sans', sans-serif; font-size: 0.85rem; font-weight: 700;
-      cursor: pointer; transition: all 0.2s;
-      box-shadow: 0 0 18px rgba(0,255,135,0.4);
+      cursor: pointer; transition: all 0.2s; box-shadow: 0 0 18px rgba(0,255,135,0.4);
     }
-    .nav-cta:hover { box-shadow: 0 0 32px rgba(0,255,135,0.7); transform: translateY(-1px); }
+    .nav-cta:hover { box-shadow: 0 0 36px rgba(0,255,135,0.8); transform: translateY(-1px); }
 
-    /* HERO — two column */
+    /* HERO */
     .hero {
-      position: relative; z-index: 2;
-      min-height: 100vh;
+      position: relative; z-index: 2; min-height: 100vh;
       display: grid; grid-template-columns: 1fr 1fr;
-      align-items: center;
-      padding: 120px 48px 80px;
+      align-items: center; padding: 120px 48px 80px;
       max-width: 1280px; margin: 0 auto;
     }
-
     .hero-left { display: flex; flex-direction: column; align-items: flex-start; }
-
     .hero-tag {
       display: inline-flex; align-items: center; gap: 10px;
       font-family: 'DM Mono', monospace; font-size: 0.7rem;
-      color: var(--green); letter-spacing: 0.14em; text-transform: uppercase;
-      margin-bottom: 26px;
+      color: var(--green); letter-spacing: 0.14em; text-transform: uppercase; margin-bottom: 26px;
     }
     .hero-tag::before { content: ''; width: 24px; height: 1px; background: var(--green); box-shadow: 0 0 8px var(--green); }
-
     .hero-title {
       font-family: 'Syne', sans-serif;
       font-size: clamp(2.6rem, 5vw, 5rem);
-      font-weight: 700; line-height: 1.0; letter-spacing: -0.02em;
-      margin-bottom: 24px;
+      font-weight: 700; line-height: 1.0; letter-spacing: -0.02em; margin-bottom: 24px;
     }
     .hero-title .t1, .hero-title .t2 { display: block; color: var(--white); }
     .hero-title .t3 {
       display: block; color: transparent;
       -webkit-text-stroke: 1.5px var(--green);
-      text-shadow: 0 0 30px rgba(0,255,135,0.25);
+      text-shadow: 0 0 40px rgba(0,255,135,0.3);
     }
-
     .hero-sub { font-size: 0.95rem; color: var(--grey); line-height: 1.7; max-width: 400px; margin-bottom: 36px; }
 
     /* INPUT */
     .input-stack { width: 100%; max-width: 480px; display: flex; flex-direction: column; gap: 10px; }
     .input-row { display: flex; gap: 8px; }
-
     .sound-input {
       flex: 1; padding: 13px 16px;
       background: var(--surface); border: 1px solid var(--dim); border-radius: 7px;
       color: var(--white); font-family: 'DM Sans', sans-serif; font-size: 0.92rem;
       outline: none; transition: border-color 0.2s, box-shadow 0.2s;
     }
-    .sound-input:focus { border-color: var(--green); box-shadow: 0 0 0 1px var(--green), 0 0 16px rgba(0,255,135,0.12); }
-    .sound-input::placeholder { color: #3a3a3a; }
-
+    .sound-input:focus { border-color: var(--green); box-shadow: 0 0 0 1px var(--green), 0 0 20px rgba(0,255,135,0.15); }
+    .sound-input::placeholder { color: #333; }
     .gen-btn {
       padding: 13px 20px; background: var(--green); border: none; border-radius: 7px;
       color: #000; font-family: 'DM Sans', sans-serif; font-weight: 700; font-size: 0.88rem;
       cursor: pointer; white-space: nowrap; transition: all 0.2s;
-      box-shadow: 0 0 20px rgba(0,255,135,0.45);
+      box-shadow: 0 0 20px rgba(0,255,135,0.5);
     }
-    .gen-btn:hover { box-shadow: 0 0 36px rgba(0,255,135,0.75); transform: translateY(-1px); }
+    .gen-btn:hover { box-shadow: 0 0 40px rgba(0,255,135,0.9); transform: translateY(-1px); }
     .gen-btn:disabled { opacity: 0.4; cursor: not-allowed; transform: none; }
 
     /* CHIPS */
@@ -117,7 +94,7 @@
       font-family: 'DM Mono', monospace; font-size: 0.72rem;
       color: var(--grey); cursor: pointer; transition: all 0.15s; user-select: none;
     }
-    .chip:hover { border-color: var(--green); color: var(--green); box-shadow: 0 0 8px rgba(0,255,135,0.18); }
+    .chip:hover { border-color: var(--green); color: var(--green); box-shadow: 0 0 10px rgba(0,255,135,0.2); transform: translateY(-1px); }
 
     /* STATUS */
     .status-bar { display: none; align-items: center; gap: 9px; padding: 11px 14px; background: #080808; border: 1px solid var(--dim); border-radius: 7px; font-size: 0.83rem; }
@@ -125,61 +102,93 @@
     .status-bar.loading { border-color: var(--green); color: var(--green); }
     .status-bar.success { border-color: var(--cyan); color: var(--cyan); }
     .status-bar.error   { border-color: #ff3355; color: #ff3355; }
-
     .spinner { width: 12px; height: 12px; border: 1.5px solid rgba(0,255,135,0.25); border-top-color: var(--green); border-radius: 50%; animation: spin 0.7s linear infinite; flex-shrink: 0; }
     @keyframes spin { to { transform: rotate(360deg); } }
 
     /* RESULT */
-    .result-box { display: none; flex-direction: column; gap: 10px; padding: 16px; background: #080808; border: 1px solid var(--dim); border-radius: 7px; }
-    .result-box.show { display: flex; animation: fadein 0.3s ease; }
-    @keyframes fadein { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
-
+    .result-box { display: none; flex-direction: column; gap: 10px; padding: 16px; background: #060606; border: 1px solid var(--dim); border-radius: 10px; box-shadow: 0 0 30px rgba(0,255,135,0.05); }
+    .result-box.show { display: flex; animation: fadein 0.4s ease; }
+    @keyframes fadein { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
     .result-top { display: flex; align-items: center; gap: 9px; }
     .badge { font-family: 'DM Mono', monospace; font-size: 0.66rem; padding: 3px 8px; border-radius: 3px; text-transform: uppercase; letter-spacing: 0.08em; }
     .badge.generated { background: rgba(0,255,135,0.08); color: var(--green); border: 1px solid rgba(0,255,135,0.25); }
     .badge.retrieved  { background: rgba(0,229,255,0.06); color: var(--cyan);  border: 1px solid rgba(0,229,255,0.2); }
     .result-desc { font-size: 0.82rem; color: var(--grey); line-height: 1.6; font-style: italic; }
     audio { width: 100%; border-radius: 6px; filter: invert(1) hue-rotate(180deg) brightness(0.9); }
+    .dl-btn {
+      display: none; align-items: center; gap: 6px;
+      background: rgba(0,255,135,0.08); border: 1px solid rgba(0,255,135,0.25);
+      color: var(--green); padding: 8px 16px; border-radius: 8px;
+      font-size: 0.78rem; text-decoration: none;
+      font-family: 'DM Mono', monospace; transition: all 0.2s; width: fit-content;
+    }
+    .dl-btn:hover { background: rgba(0,255,135,0.15); box-shadow: 0 0 14px rgba(0,255,135,0.2); }
 
-    /* VIZ CANVAS */
+    /* 3D ORB CONTAINER */
     .hero-right {
       display: flex; align-items: center; justify-content: center;
       position: relative; height: 580px;
     }
-
-    #vizCanvas { display: block; }
+    #orbCanvas { display: block; border-radius: 50%; }
 
     /* TICKER */
     .ticker-wrap { position: relative; z-index: 2; overflow: hidden; border-top: 1px solid var(--border); border-bottom: 1px solid var(--border); padding: 13px 0; }
     .ticker-track { display: flex; gap: 52px; animation: ticker 30s linear infinite; width: max-content; }
-    .ticker-item { font-family: 'DM Mono', monospace; font-size: 0.72rem; color: #2e2e2e; white-space: nowrap; letter-spacing: 0.06em; text-transform: uppercase; display: flex; align-items: center; gap: 18px; }
+    .ticker-item { font-family: 'DM Mono', monospace; font-size: 0.72rem; color: #2a2a2a; white-space: nowrap; letter-spacing: 0.06em; text-transform: uppercase; display: flex; align-items: center; gap: 18px; }
     .ticker-item::after { content: '✦'; color: var(--green); font-size: 0.4rem; }
     @keyframes ticker { from { transform: translateX(0); } to { transform: translateX(-50%); } }
 
-    /* FEATURES */
+    /* FEATURES — flip cards */
     .features { position: relative; z-index: 2; padding: 110px 48px; max-width: 1280px; margin: 0 auto; }
-
     .section-eyebrow { font-family: 'DM Mono', monospace; font-size: 0.7rem; color: var(--green); letter-spacing: 0.14em; text-transform: uppercase; margin-bottom: 18px; display: flex; align-items: center; gap: 10px; }
     .section-eyebrow::before { content: ''; width: 20px; height: 1px; background: var(--green); box-shadow: 0 0 6px var(--green); }
-
     .section-title { font-family: 'Syne', sans-serif; font-size: clamp(1.8rem, 3vw, 2.6rem); font-weight: 700; letter-spacing: -0.02em; line-height: 1.05; margin-bottom: 56px; }
 
-    .features-grid { display: grid; grid-template-columns: repeat(4,1fr); gap: 1px; background: var(--border); border: 1px solid var(--border); }
-    .feat { background: var(--bg); padding: 32px 26px; opacity: 0; transform: translateY(28px); transition: opacity 0.5s ease, transform 0.5s ease, background 0.2s; }
-    .feat.revealed { opacity: 1; transform: translateY(0); }
-    .feat:hover { background: #080808; }
-    .feat-num { font-family: 'DM Mono', monospace; font-size: 0.66rem; color: var(--green); letter-spacing: 0.1em; margin-bottom: 20px; }
-    .feat-icon { font-size: 1.5rem; margin-bottom: 14px; }
-    .feat h3 { font-family: 'Syne', sans-serif; font-size: 0.95rem; font-weight: 700; margin-bottom: 9px; }
-    .feat p { font-size: 0.8rem; color: var(--grey); line-height: 1.65; }
+    .features-grid { display: grid; grid-template-columns: repeat(4,1fr); gap: 16px; }
+
+    /* FLIP CARD */
+    .flip-card { height: 220px; perspective: 900px; cursor: pointer; }
+    .flip-card-inner {
+      position: relative; width: 100%; height: 100%;
+      transform-style: preserve-3d; transition: transform 0.65s cubic-bezier(0.4,0.2,0.2,1);
+    }
+    .flip-card:hover .flip-card-inner { transform: rotateY(180deg); }
+    .flip-front, .flip-back {
+      position: absolute; inset: 0;
+      backface-visibility: hidden; -webkit-backface-visibility: hidden;
+      border-radius: 12px; padding: 28px 24px;
+      border: 1px solid var(--border);
+      display: flex; flex-direction: column;
+    }
+    .flip-front {
+      background: var(--surface);
+      justify-content: flex-end;
+      box-shadow: 0 4px 30px rgba(0,0,0,0.4), inset 0 1px 0 rgba(255,255,255,0.03);
+    }
+    .flip-back {
+      background: linear-gradient(135deg, #060f07 0%, #000e08 100%);
+      border-color: rgba(0,255,135,0.2);
+      transform: rotateY(180deg);
+      justify-content: center;
+      box-shadow: 0 4px 30px rgba(0,255,135,0.08), inset 0 1px 0 rgba(0,255,135,0.05);
+    }
+    .flip-num { font-family: 'DM Mono', monospace; font-size: 0.62rem; color: rgba(0,255,135,0.4); letter-spacing: 0.1em; margin-bottom: auto; }
+    .flip-icon { font-size: 2rem; margin-bottom: 12px; }
+    .flip-title { font-family: 'Syne', sans-serif; font-size: 1rem; font-weight: 700; }
+    .flip-desc { font-size: 0.78rem; color: #aaa; line-height: 1.65; }
+    .flip-back-label { font-family: 'DM Mono', monospace; font-size: 0.6rem; color: var(--green); letter-spacing: 0.12em; text-transform: uppercase; margin-bottom: 10px; }
 
     /* STEPS */
     .steps-section { position: relative; z-index: 2; padding: 0 48px 110px; max-width: 1280px; margin: 0 auto; }
-    .steps-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1px; background: var(--border); border: 1px solid var(--border); }
-    .step { background: var(--bg); padding: 36px 32px; opacity: 0; transform: translateX(-18px); transition: opacity 0.5s ease, transform 0.5s ease, background 0.2s; }
-    .step.revealed { opacity: 1; transform: translateX(0); }
-    .step:hover { background: #080808; }
-    .step-n { font-family: 'Syne', sans-serif; font-size: 2.8rem; font-weight: 700; color: transparent; -webkit-text-stroke: 1px #222; line-height: 1; margin-bottom: 18px; }
+    .steps-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1px; background: var(--border); border: 1px solid var(--border); border-radius: 12px; overflow: hidden; }
+    .step {
+      background: var(--bg); padding: 36px 32px;
+      opacity: 0; transform: translateY(20px);
+      transition: opacity 0.5s ease, transform 0.5s ease, background 0.2s;
+    }
+    .step.revealed { opacity: 1; transform: translateY(0); }
+    .step:hover { background: #060606; }
+    .step-n { font-family: 'Syne', sans-serif; font-size: 3rem; font-weight: 700; color: transparent; -webkit-text-stroke: 1px #1a1a1a; line-height: 1; margin-bottom: 18px; }
     .step h3 { font-family: 'Syne', sans-serif; font-size: 1rem; font-weight: 700; margin-bottom: 9px; }
     .step p { font-size: 0.8rem; color: var(--grey); line-height: 1.7; }
 
@@ -190,12 +199,12 @@
     .footer-right { font-family: 'DM Mono', monospace; font-size: 0.7rem; color: #2a2a2a; letter-spacing: 0.05em; }
     .footer-right span { color: #3a3a3a; }
 
-    .cursor-glow { position: fixed; width: 280px; height: 280px; border-radius: 50%; background: radial-gradient(circle, rgba(0,255,135,0.04) 0%, transparent 70%); pointer-events: none; z-index: 1; transform: translate(-50%,-50%); }
+    .cursor-glow { position: fixed; width: 300px; height: 300px; border-radius: 50%; background: radial-gradient(circle, rgba(0,255,135,0.04) 0%, transparent 70%); pointer-events: none; z-index: 1; transform: translate(-50%,-50%); transition: opacity 0.3s; }
 
     @media (max-width: 900px) {
       .hero { grid-template-columns: 1fr; padding: 100px 24px 60px; text-align: center; }
       .hero-left { align-items: center; }
-      .hero-right { height: 320px; }
+      .hero-right { height: 300px; }
       .features-grid { grid-template-columns: 1fr 1fr; }
       .steps-grid { grid-template-columns: 1fr; }
       nav { padding: 16px 24px; }
@@ -269,14 +278,14 @@
         </div>
         <p class="result-desc" id="resultDesc"></p>
         <audio id="player" controls></audio>
-        <a id="downloadBtn" style="display:none;margin-top:10px;display:none;align-items:center;gap:6px;background:rgba(0,255,135,0.1);border:1px solid rgba(0,255,135,0.3);color:#00ff87;padding:8px 16px;border-radius:8px;font-size:0.8rem;text-decoration:none;font-family:'DM Mono',monospace;" download="audify_sound.wav">↓ Download</a>
+        <a id="downloadBtn" class="dl-btn" download="audify_sound.wav">↓ Download</a>
       </div>
     </div>
   </div>
 
-  <!-- SOUND VISUALIZER -->
+  <!-- 3D ORB -->
   <div class="hero-right">
-    <canvas id="vizCanvas" width="420" height="420"></canvas>
+    <canvas id="orbCanvas" width="460" height="460"></canvas>
   </div>
 </section>
 
@@ -300,34 +309,62 @@
   </div>
 </div>
 
-<!-- FEATURES -->
+<!-- FEATURES — flip cards -->
 <section class="features" id="features">
   <div class="section-eyebrow">Capabilities</div>
   <h2 class="section-title">What Audify does</h2>
   <div class="features-grid">
-    <div class="feat" data-delay="0">
-      <div class="feat-num">01</div>
-      <div class="feat-icon">🧠</div>
-      <h3>Prompt Expansion</h3>
-      <p>Mistral-7B turns your one-word input into a vivid, detailed sonic description with texture, space, and intensity.</p>
+    <div class="flip-card">
+      <div class="flip-card-inner">
+        <div class="flip-front">
+          <div class="flip-num">01</div>
+          <div class="flip-icon">🧠</div>
+          <div class="flip-title">Prompt Expansion</div>
+        </div>
+        <div class="flip-back">
+          <div class="flip-back-label">How it works</div>
+          <p class="flip-desc">Your one-word input is expanded into a vivid, detailed sonic description — texture, space, and intensity included.</p>
+        </div>
+      </div>
     </div>
-    <div class="feat" data-delay="80">
-      <div class="feat-num">02</div>
-      <div class="feat-icon">🔍</div>
-      <h3>Semantic Search</h3>
-      <p>Vector embeddings match your prompt against a library of real recordings. Close match? Instant result — no wait.</p>
+    <div class="flip-card">
+      <div class="flip-card-inner">
+        <div class="flip-front">
+          <div class="flip-num">02</div>
+          <div class="flip-icon">🔍</div>
+          <div class="flip-title">Semantic Search</div>
+        </div>
+        <div class="flip-back">
+          <div class="flip-back-label">How it works</div>
+          <p class="flip-desc">Your prompt is matched against a library of real recordings. Close match? Instant result — no generation wait.</p>
+        </div>
+      </div>
     </div>
-    <div class="feat" data-delay="160">
-      <div class="feat-num">03</div>
-      <div class="feat-icon">⚡</div>
-      <h3>AI Generation</h3>
-      <p>AudioLDM2 diffusion model synthesises a unique audio clip from scratch in ~30 seconds when no match is found.</p>
+    <div class="flip-card">
+      <div class="flip-card-inner">
+        <div class="flip-front">
+          <div class="flip-num">03</div>
+          <div class="flip-icon">⚡</div>
+          <div class="flip-title">AI Generation</div>
+        </div>
+        <div class="flip-back">
+          <div class="flip-back-label">How it works</div>
+          <p class="flip-desc">ElevenLabs AI synthesises a unique, high-fidelity audio clip from any description — in seconds.</p>
+        </div>
+      </div>
     </div>
-    <div class="feat" data-delay="240">
-      <div class="feat-num">04</div>
-      <div class="feat-icon">🎨</div>
-      <h3>No Limits</h3>
-      <p>Sounds that don't exist. Emotions. Fictional worlds. Describe anything and Audify will try to render it into audio.</p>
+    <div class="flip-card">
+      <div class="flip-card-inner">
+        <div class="flip-front">
+          <div class="flip-num">04</div>
+          <div class="flip-icon">🎨</div>
+          <div class="flip-title">No Limits</div>
+        </div>
+        <div class="flip-back">
+          <div class="flip-back-label">How it works</div>
+          <p class="flip-desc">Sounds that don't exist. Emotions. Fictional worlds. Describe anything and Audify will render it into audio.</p>
+        </div>
+      </div>
     </div>
   </div>
 </section>
@@ -339,23 +376,23 @@
   <div class="steps-grid">
     <div class="step" data-delay="0">
       <div class="step-n">01</div>
-      <h3>Elaborate Agent</h3>
-      <p>Your input hits Mistral-7B which expands it — "cat" becomes "a soft indoor meow, close-mic, slight reverb, domestic shorthair."</p>
+      <h3>Elaborate</h3>
+      <p>Your input is expanded — "cat" becomes "a soft indoor meow, close-mic, slight reverb, domestic shorthair."</p>
     </div>
     <div class="step" data-delay="100">
       <div class="step-n">02</div>
-      <h3>Search Agent</h3>
-      <p>The description is embedded and compared to real audio clips via cosine similarity. Score ≥ 0.75 = instant match returned.</p>
+      <h3>Search</h3>
+      <p>The description is compared against real audio clips. High similarity = instant match returned.</p>
     </div>
     <div class="step" data-delay="200">
       <div class="step-n">03</div>
-      <h3>Generation Agent</h3>
-      <p>No match? AudioLDM2 takes the elaborated description and generates a brand new wav file using audio diffusion.</p>
+      <h3>Generate</h3>
+      <p>No match? ElevenLabs AI generates a brand new audio file from your description.</p>
     </div>
     <div class="step" data-delay="300">
       <div class="step-n">04</div>
-      <h3>Orchestration</h3>
-      <p>smolagents coordinates all three, handles retries, parses output, and delivers description + audio back to the UI.</p>
+      <h3>Deliver</h3>
+      <p>Your audio plays instantly in the browser. Download it as a WAV file for use anywhere.</p>
     </div>
   </div>
 </section>
@@ -363,7 +400,7 @@
 <footer>
   <div class="footer-logo">Audify<span>.</span>ai</div>
   <div class="footer-right">
-    <span>AudioLDM2</span> · <span>smolagents</span> · <span>Mistral-7B</span> · <span>FastAPI</span>
+    <span>ElevenLabs</span> · <span>FastAPI</span> · <span>Railway</span>
   </div>
 </footer>
 
@@ -392,15 +429,9 @@
   }
   const pg = new THREE.BufferGeometry();
   pg.setAttribute('position', new THREE.BufferAttribute(pos, 3));
-  pg.setAttribute('color',    new THREE.BufferAttribute(col, 3));
-  const pts = new THREE.Points(pg, new THREE.PointsMaterial({ size: 0.12, vertexColors: true, transparent: true, opacity: 0.4, sizeAttenuation: true }));
+  pg.setAttribute('color', new THREE.BufferAttribute(col, 3));
+  const pts = new THREE.Points(pg, new THREE.PointsMaterial({ size: 0.12, vertexColors: true, transparent: true, opacity: 0.35, sizeAttenuation: true }));
   scene.add(pts);
-
-  const ico = new THREE.Mesh(
-    new THREE.IcosahedronGeometry(9, 1),
-    new THREE.MeshBasicMaterial({ color: 0x002200, wireframe: true, transparent: true, opacity: 0.05 })
-  );
-  scene.add(ico);
 
   let mx = 0, my = 0;
   addEventListener('mousemove', e => { mx = (e.clientX/innerWidth-.5)*2; my = -(e.clientY/innerHeight-.5)*2; });
@@ -412,8 +443,6 @@
     t += 0.003;
     pts.rotation.y = t * 0.05;
     pts.rotation.x = t * 0.02;
-    ico.rotation.x = t * 0.07;
-    ico.rotation.y = t * 0.1;
     cam.position.x += (mx*3 - cam.position.x) * 0.04;
     cam.position.y += (my*3 - cam.position.y) * 0.04;
     cam.lookAt(scene.position);
@@ -425,152 +454,115 @@
 const cg = document.getElementById('cg');
 document.addEventListener('mousemove', e => { cg.style.left = e.clientX+'px'; cg.style.top = e.clientY+'px'; });
 
-// ─── SOUND VISUALIZER ───
+// ─── 3D ORB (Three.js) ───
 (function() {
-  const canvas = document.getElementById('vizCanvas');
-  const ctx = canvas.getContext('2d');
+  const canvas = document.getElementById('orbCanvas');
   const W = canvas.width, H = canvas.height;
-  const cx = W/2, cy = H/2;
+  const scene = new THREE.Scene();
+  const cam = new THREE.PerspectiveCamera(45, W/H, 0.1, 100);
+  cam.position.z = 3.2;
 
-  const BAR_COUNT = 80;
-  const BASE_RADIUS = 90;
+  const renderer = new THREE.WebGLRenderer({ canvas, alpha: true, antialias: true });
+  renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
+  renderer.setSize(W, H);
 
-  // Simulated frequency data — smooth noise
-  const freqs   = new Float32Array(BAR_COUNT);
-  const targets = new Float32Array(BAR_COUNT);
-  const phases  = new Float32Array(BAR_COUNT).map((_,i) => Math.random() * Math.PI * 2);
-  const speeds  = new Float32Array(BAR_COUNT).map(() => 0.3 + Math.random() * 0.8);
+  // Core sphere — solid with slight transparency
+  const coreMat = new THREE.MeshPhongMaterial({
+    color: 0x001a0a,
+    emissive: 0x003310,
+    transparent: true, opacity: 0.85,
+    shininess: 120,
+  });
+  const coreMesh = new THREE.Mesh(new THREE.SphereGeometry(0.78, 64, 64), coreMat);
+  scene.add(coreMesh);
 
-  let isPlaying = false;
-  let isLoading = false;
-  let t = 0;
+  // Wireframe sphere 1
+  const wire1 = new THREE.Mesh(
+    new THREE.IcosahedronGeometry(1.0, 2),
+    new THREE.MeshBasicMaterial({ color: 0x00ff87, wireframe: true, transparent: true, opacity: 0.18 })
+  );
+  scene.add(wire1);
 
-  function setPlaying(v) { isPlaying = v; }
-  function setLoading(v) { isLoading = v; }
+  // Wireframe sphere 2 — slightly larger, different rotation
+  const wire2 = new THREE.Mesh(
+    new THREE.IcosahedronGeometry(1.18, 1),
+    new THREE.MeshBasicMaterial({ color: 0x00e5ff, wireframe: true, transparent: true, opacity: 0.08 })
+  );
+  scene.add(wire2);
 
-  window._vizSetPlaying = setPlaying;
-  window._vizSetLoading = setLoading;
-
-  function draw() {
-    requestAnimationFrame(draw);
-    t += 0.016;
-
-    ctx.clearRect(0, 0, W, H);
-
-    // Update target frequencies
-    for (let i = 0; i < BAR_COUNT; i++) {
-      const phase = phases[i] + t * speeds[i];
-      let base;
-
-      if (isPlaying) {
-        // Wild variation when playing
-        base = 0.3 + 0.7 * (
-          0.5 * Math.sin(phase) +
-          0.3 * Math.sin(phase * 2.3 + 1) +
-          0.2 * Math.sin(phase * 5.1 + 2)
-        );
-        base = Math.max(0.05, Math.abs(base));
-        // Occasional spike
-        if (Math.random() < 0.02) base = 0.85 + Math.random() * 0.15;
-      } else if (isLoading) {
-        // Faster spin while loading
-        base = 0.15 + 0.5 * Math.abs(Math.sin(phase * 1.5 + i * 0.15));
-      } else {
-        // Gentle idle breathing
-        base = 0.05 + 0.2 * Math.abs(
-          0.6 * Math.sin(phase * 0.4) +
-          0.4 * Math.sin(phase * 0.9 + i * 0.08)
-        );
-      }
-
-      targets[i] = base;
-      freqs[i] += (targets[i] - freqs[i]) * 0.18;
-    }
-
-    // Outer ambient glow
-    const glow = ctx.createRadialGradient(cx, cy, BASE_RADIUS - 20, cx, cy, BASE_RADIUS + 140);
-    glow.addColorStop(0, 'rgba(0,255,135,0.06)');
-    glow.addColorStop(1, 'rgba(0,255,135,0)');
-    ctx.beginPath();
-    ctx.arc(cx, cy, BASE_RADIUS + 140, 0, Math.PI * 2);
-    ctx.fillStyle = glow;
-    ctx.fill();
-
-    // Draw radial bars
-    const maxBarH = isPlaying ? 90 : isLoading ? 65 : 40;
-
-    for (let i = 0; i < BAR_COUNT; i++) {
-      const angle = (i / BAR_COUNT) * Math.PI * 2 - Math.PI / 2;
-      const barH = freqs[i] * maxBarH;
-      const alpha = 0.5 + freqs[i] * 0.5;
-
-      const x1 = cx + Math.cos(angle) * BASE_RADIUS;
-      const y1 = cy + Math.sin(angle) * BASE_RADIUS;
-      const x2 = cx + Math.cos(angle) * (BASE_RADIUS + barH);
-      const y2 = cy + Math.sin(angle) * (BASE_RADIUS + barH);
-
-      // Bar gradient: green at base → cyan at tip
-      const grad = ctx.createLinearGradient(x1, y1, x2, y2);
-      grad.addColorStop(0, `rgba(0,255,135,${alpha * 0.7})`);
-      grad.addColorStop(1, `rgba(0,229,255,${alpha})`);
-
-      ctx.beginPath();
-      ctx.moveTo(x1, y1);
-      ctx.lineTo(x2, y2);
-      ctx.strokeStyle = grad;
-      ctx.lineWidth = isPlaying ? 2.5 : 2;
-      ctx.lineCap = 'round';
-      ctx.stroke();
-
-      // Glow dot at tip
-      if (freqs[i] > 0.4) {
-        ctx.beginPath();
-        ctx.arc(x2, y2, isPlaying ? 2.5 : 1.5, 0, Math.PI * 2);
-        ctx.fillStyle = `rgba(0,255,200,${freqs[i] * 0.9})`;
-        ctx.shadowBlur = 10;
-        ctx.shadowColor = '#00ff87';
-        ctx.fill();
-        ctx.shadowBlur = 0;
-      }
-    }
-
-    // Inner circle base ring
-    ctx.beginPath();
-    ctx.arc(cx, cy, BASE_RADIUS - 1, 0, Math.PI * 2);
-    ctx.strokeStyle = 'rgba(0,255,135,0.15)';
-    ctx.lineWidth = 1;
-    ctx.stroke();
-
-    // Inner fill
-    const innerGrad = ctx.createRadialGradient(cx, cy, 0, cx, cy, BASE_RADIUS - 2);
-    innerGrad.addColorStop(0, 'rgba(0,255,135,0.04)');
-    innerGrad.addColorStop(1, 'rgba(0,0,0,0)');
-    ctx.beginPath();
-    ctx.arc(cx, cy, BASE_RADIUS - 2, 0, Math.PI * 2);
-    ctx.fillStyle = innerGrad;
-    ctx.fill();
-
-    // Center dot
-    const pulse = 0.5 + 0.5 * Math.sin(t * 2);
-    const dotR = isPlaying ? 6 + pulse * 4 : 4 + pulse * 2;
-    ctx.beginPath();
-    ctx.arc(cx, cy, dotR, 0, Math.PI * 2);
-    ctx.fillStyle = '#00ff87';
-    ctx.shadowBlur = 20;
-    ctx.shadowColor = '#00ff87';
-    ctx.fill();
-    ctx.shadowBlur = 0;
-
-    // "AUDIFY" label in center
-    ctx.font = '700 11px DM Mono, monospace';
-    ctx.fillStyle = 'rgba(0,255,135,0.35)';
-    ctx.textAlign = 'center';
-    ctx.textBaseline = 'middle';
-    ctx.letterSpacing = '0.15em';
-    ctx.fillText('AUDIFY', cx, cy + 28);
+  // Point cloud on sphere surface
+  const ptCount = 1200;
+  const ptPos = new Float32Array(ptCount * 3);
+  for (let i = 0; i < ptCount; i++) {
+    const phi = Math.acos(2 * Math.random() - 1);
+    const theta = Math.random() * Math.PI * 2;
+    const r = 1.05;
+    ptPos[i*3]   = r * Math.sin(phi) * Math.cos(theta);
+    ptPos[i*3+1] = r * Math.sin(phi) * Math.sin(theta);
+    ptPos[i*3+2] = r * Math.cos(phi);
   }
+  const ptGeo = new THREE.BufferGeometry();
+  ptGeo.setAttribute('position', new THREE.BufferAttribute(ptPos, 3));
+  const ptMat = new THREE.PointsMaterial({ color: 0x00ff87, size: 0.018, transparent: true, opacity: 0.7, sizeAttenuation: true });
+  const ptCloud = new THREE.Points(ptGeo, ptMat);
+  scene.add(ptCloud);
 
-  draw();
+  // Rings
+  const ringMat = new THREE.MeshBasicMaterial({ color: 0x00ff87, transparent: true, opacity: 0.12, side: THREE.DoubleSide });
+  const ring1 = new THREE.Mesh(new THREE.RingGeometry(1.28, 1.32, 64), ringMat);
+  ring1.rotation.x = Math.PI / 2.5;
+  scene.add(ring1);
+  const ring2 = new THREE.Mesh(new THREE.RingGeometry(1.45, 1.47, 64), new THREE.MeshBasicMaterial({ color: 0x00e5ff, transparent: true, opacity: 0.07, side: THREE.DoubleSide }));
+  ring2.rotation.x = Math.PI / 1.7;
+  ring2.rotation.z = 0.4;
+  scene.add(ring2);
+
+  // Lights
+  const ambient = new THREE.AmbientLight(0x003310, 2);
+  scene.add(ambient);
+  const pt1 = new THREE.PointLight(0x00ff87, 3, 8);
+  pt1.position.set(2, 2, 2);
+  scene.add(pt1);
+  const pt2 = new THREE.PointLight(0x00e5ff, 1.5, 8);
+  pt2.position.set(-2, -1, 1);
+  scene.add(pt2);
+
+  let isPlaying = false, isLoading = false;
+  window._vizSetPlaying = v => { isPlaying = v; };
+  window._vizSetLoading = v => { isLoading = v; };
+
+  let t = 0;
+  (function loop() {
+    requestAnimationFrame(loop);
+    t += 0.01;
+
+    const breathe = isPlaying
+      ? 1 + 0.06 * Math.sin(t * 4) + 0.04 * Math.sin(t * 7.3)
+      : isLoading
+      ? 1 + 0.04 * Math.sin(t * 3)
+      : 1 + 0.015 * Math.sin(t * 1.2);
+
+    coreMesh.scale.setScalar(breathe);
+    wire1.scale.setScalar(breathe * (1 + 0.02 * Math.sin(t * 2.1)));
+    ptCloud.scale.setScalar(breathe);
+
+    const speed = isPlaying ? 0.6 : isLoading ? 0.35 : 0.12;
+    wire1.rotation.y = t * speed;
+    wire1.rotation.x = t * speed * 0.4;
+    wire2.rotation.y = -t * speed * 0.7;
+    wire2.rotation.z = t * speed * 0.3;
+    ptCloud.rotation.y = t * speed * 0.5;
+    ptCloud.rotation.x = t * speed * 0.2;
+    ring1.rotation.z = t * 0.2;
+    ring2.rotation.y = t * 0.15;
+
+    // Color pulse when playing
+    const greenIntensity = isPlaying ? 2 + Math.sin(t * 6) * 1.5 : 2;
+    pt1.intensity = greenIntensity;
+    coreMat.emissiveIntensity = isPlaying ? 0.5 + 0.3 * Math.sin(t * 5) : 0.2;
+
+    renderer.render(scene, cam);
+  })();
 })();
 
 // ─── SCROLL REVEAL ───
@@ -582,7 +574,7 @@ const ro = new IntersectionObserver(entries => {
     }
   });
 }, { threshold: 0.12 });
-document.querySelectorAll('.feat, .step').forEach(el => ro.observe(el));
+document.querySelectorAll('.step').forEach(el => ro.observe(el));
 
 // ─── HELPERS ───
 function use(t) { document.getElementById('soundInput').value = t; document.getElementById('soundInput').focus(); }
@@ -611,7 +603,7 @@ async function generate() {
   window._vizSetPlaying(false);
   window._vizSetLoading(true);
   document.getElementById('resultBox').className = 'result-box';
-  setStatus('loading', 'Generating your sound — may take 30–60s…', true);
+  setStatus('loading', 'Generating your sound…', true);
 
   try {
     const base = window.location.origin;
@@ -640,7 +632,7 @@ async function generate() {
     dlBtn.style.display = 'inline-flex';
 
     document.getElementById('resultBox').className = 'result-box show';
-    setStatus('success', data.source === 'retrieved' ? '⚡ Retrieved from library' : '✦ Synthesised with AudioLDM2', false);
+    setStatus('success', data.source === 'retrieved' ? '⚡ Retrieved from library' : '✦ Generated with ElevenLabs', false);
     player.play().catch(()=>{});
   } catch(err) {
     window._vizSetLoading(false);
