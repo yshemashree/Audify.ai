@@ -10,6 +10,7 @@ from smolagents import tool
 load_dotenv()
 HF_TOKEN = os.getenv("HUGGINGFACE_API_TOKEN")
 HEADERS = {"Authorization": f"Bearer {HF_TOKEN}"}
+ELEVENLABS_KEY = os.getenv("ELEVENLABS_API_KEY")
 
 SOUND_DB = []
 
@@ -381,7 +382,8 @@ def search_audio(elaborated_prompt: str) -> str:
 @tool
 def generate_audio(elaborated_prompt: str) -> str:
     """
-    Generates a new audio clip from scratch using procedural synthesis.
+    Generates a new audio clip from scratch. Tries ElevenLabs sound generation
+    first (any sound, AI quality), falls back to local procedural synthesis.
     Saves the result as a .wav file and returns the file path.
 
     Args:
@@ -391,5 +393,24 @@ def generate_audio(elaborated_prompt: str) -> str:
         The file path to the generated .wav audio file as a string.
     """
     output_path = "generated_audio.wav"
+
+    if ELEVENLABS_KEY:
+        try:
+            response = requests.post(
+                "https://api.elevenlabs.io/v1/sound-generation",
+                headers={
+                    "xi-api-key": ELEVENLABS_KEY,
+                    "Content-Type": "application/json",
+                },
+                json={"text": elaborated_prompt, "duration_seconds": 4.0, "prompt_influence": 0.3},
+                timeout=30,
+            )
+            if response.status_code == 200:
+                with open(output_path, "wb") as f:
+                    f.write(response.content)
+                return output_path
+        except Exception:
+            pass
+
     generate_local_audio(elaborated_prompt, output_path)
     return output_path
