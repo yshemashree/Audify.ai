@@ -1,0 +1,402 @@
+[
+  {
+    "id": "esc50_dog",
+    "category": "dog",
+    "label": "dog",
+    "esc50_fold": "1",
+    "source": "ESC-50",
+    "description": "medium dog bark, sharp burst, outdoor echo, alert defensive tone"
+  },
+  {
+    "id": "esc50_chirping_birds",
+    "category": "chirping_birds",
+    "label": "chirping birds",
+    "esc50_fold": "1",
+    "source": "ESC-50",
+    "description": "morning bird song, melodic warble, multiple pitch variations, forest ambience"
+  },
+  {
+    "id": "esc50_vacuum_cleaner",
+    "category": "vacuum_cleaner",
+    "label": "vacuum cleaner",
+    "esc50_fold": "1",
+    "source": "ESC-50",
+    "description": "vacuum cleaner motor roar, continuous high-frequency hum, indoor"
+  },
+  {
+    "id": "esc50_thunderstorm",
+    "category": "thunderstorm",
+    "label": "thunderstorm",
+    "esc50_fold": "1",
+    "source": "ESC-50",
+    "description": "deep rolling thunder crack, heavy rain on leaves, wide outdoor reverb"
+  },
+  {
+    "id": "esc50_door_wood_knock",
+    "category": "door_wood_knock",
+    "label": "door wood knock",
+    "esc50_fold": "1",
+    "source": "ESC-50",
+    "description": "realistic door wood knock sound, natural acoustic environment"
+  },
+  {
+    "id": "esc50_can_opening",
+    "category": "can_opening",
+    "label": "can opening",
+    "esc50_fold": "1",
+    "source": "ESC-50",
+    "description": "soda can pull tab, pressurised hiss, metallic crack, close-mic"
+  },
+  {
+    "id": "esc50_crow",
+    "category": "crow",
+    "label": "crow",
+    "esc50_fold": "1",
+    "source": "ESC-50",
+    "description": "crow cawing, harsh dry call, open outdoor space, isolated single bird"
+  },
+  {
+    "id": "esc50_clapping",
+    "category": "clapping",
+    "label": "clapping",
+    "esc50_fold": "1",
+    "source": "ESC-50",
+    "description": "crowd clapping, rhythmic hand impacts, hall reverb, applause texture"
+  },
+  {
+    "id": "esc50_fireworks",
+    "category": "fireworks",
+    "label": "fireworks",
+    "esc50_fold": "1",
+    "source": "ESC-50",
+    "description": "fireworks explosion, sharp crack and boom, crowd ambient, night outdoor"
+  },
+  {
+    "id": "esc50_chainsaw",
+    "category": "chainsaw",
+    "label": "chainsaw",
+    "esc50_fold": "1",
+    "source": "ESC-50",
+    "description": "chainsaw running, aggressive engine buzz, high-frequency blade whine, outdoor"
+  },
+  {
+    "id": "esc50_airplane",
+    "category": "airplane",
+    "label": "airplane",
+    "esc50_fold": "1",
+    "source": "ESC-50",
+    "description": "airplane flyover, jet engine roar, Doppler sweep, open sky"
+  },
+  {
+    "id": "esc50_mouse_click",
+    "category": "mouse_click",
+    "label": "mouse click",
+    "esc50_fold": "1",
+    "source": "ESC-50",
+    "description": "computer mouse click, sharp plastic snap, desk surface, close-mic"
+  },
+  {
+    "id": "esc50_pouring_water",
+    "category": "pouring_water",
+    "label": "pouring water",
+    "esc50_fold": "1",
+    "source": "ESC-50",
+    "description": "rushing water flow, continuous liquid turbulence, outdoor stream"
+  },
+  {
+    "id": "esc50_train",
+    "category": "train",
+    "label": "train",
+    "esc50_fold": "1",
+    "source": "ESC-50",
+    "description": "train wheels on track, repetitive metallic clatter, track rhythm, tunnel reverb"
+  },
+  {
+    "id": "esc50_sheep",
+    "category": "sheep",
+    "label": "sheep",
+    "esc50_fold": "1",
+    "source": "ESC-50",
+    "description": "sheep baaing, nasal resonant call, open meadow, farm ambience"
+  },
+  {
+    "id": "esc50_water_drops",
+    "category": "water_drops",
+    "label": "water drops",
+    "esc50_fold": "1",
+    "source": "ESC-50",
+    "description": "water dripping, echo tap on still surface, hollow resonance"
+  },
+  {
+    "id": "esc50_church_bells",
+    "category": "church_bells",
+    "label": "church bells",
+    "esc50_fold": "1",
+    "source": "ESC-50",
+    "description": "church bell toll, deep bronze resonance, long sustain decay, town square"
+  },
+  {
+    "id": "esc50_clock_alarm",
+    "category": "clock_alarm",
+    "label": "clock alarm",
+    "esc50_fold": "1",
+    "source": "ESC-50",
+    "description": "alarm clock buzzing, repetitive electronic pulse, sharp piercing tone"
+  },
+  {
+    "id": "esc50_keyboard_typing",
+    "category": "keyboard_typing",
+    "label": "keyboard typing",
+    "esc50_fold": "1",
+    "source": "ESC-50",
+    "description": "mechanical keyboard typing, crisp click-clack rhythm, office indoor"
+  },
+  {
+    "id": "esc50_wind",
+    "category": "wind",
+    "label": "wind",
+    "esc50_fold": "1",
+    "source": "ESC-50",
+    "description": "strong wind through trees, rushing air, swaying branches"
+  },
+  {
+    "id": "esc50_footsteps",
+    "category": "footsteps",
+    "label": "footsteps",
+    "esc50_fold": "1",
+    "source": "ESC-50",
+    "description": "footsteps on wooden floor, hollow knock, moderate walking pace"
+  },
+  {
+    "id": "esc50_frog",
+    "category": "frog",
+    "label": "frog",
+    "esc50_fold": "1",
+    "source": "ESC-50",
+    "description": "frog croaking, rhythmic call, pond outdoor, night ambience"
+  },
+  {
+    "id": "esc50_cow",
+    "category": "cow",
+    "label": "cow",
+    "esc50_fold": "1",
+    "source": "ESC-50",
+    "description": "cow mooing, deep resonant low, open field, calm farm ambience"
+  },
+  {
+    "id": "esc50_brushing_teeth",
+    "category": "brushing_teeth",
+    "label": "brushing teeth",
+    "esc50_fold": "1",
+    "source": "ESC-50",
+    "description": "toothbrush scrubbing, wet bristle on enamel, bathroom echo"
+  },
+  {
+    "id": "esc50_car_horn",
+    "category": "car_horn",
+    "label": "car horn",
+    "esc50_fold": "1",
+    "source": "ESC-50",
+    "description": "car horn honk, sharp mid-frequency blast, urban street ambience"
+  },
+  {
+    "id": "esc50_crackling_fire",
+    "category": "crackling_fire",
+    "label": "crackling fire",
+    "esc50_fold": "1",
+    "source": "ESC-50",
+    "description": "crackling campfire, dry wood snapping, warm mid-frequency crackle"
+  },
+  {
+    "id": "esc50_helicopter",
+    "category": "helicopter",
+    "label": "helicopter",
+    "esc50_fold": "1",
+    "source": "ESC-50",
+    "description": "helicopter rotor overhead, rhythmic thwop, engine whine, air displacement"
+  },
+  {
+    "id": "esc50_drinking_sipping",
+    "category": "drinking_sipping",
+    "label": "drinking sipping",
+    "esc50_fold": "1",
+    "source": "ESC-50",
+    "description": "liquid sipping, mouth sounds, swallowing, close-mic"
+  },
+  {
+    "id": "esc50_rain",
+    "category": "rain",
+    "label": "rain",
+    "esc50_fold": "1",
+    "source": "ESC-50",
+    "description": "steady rainfall, soft patter rhythm, outdoor reverb"
+  },
+  {
+    "id": "esc50_insects",
+    "category": "insects",
+    "label": "insects",
+    "esc50_fold": "1",
+    "source": "ESC-50",
+    "description": "insect buzzing, continuous high-frequency drone, summer outdoor"
+  },
+  {
+    "id": "esc50_laughing",
+    "category": "laughing",
+    "label": "laughing",
+    "esc50_fold": "1",
+    "source": "ESC-50",
+    "description": "warm human laughter, natural rhythm, indoor room reverb"
+  },
+  {
+    "id": "esc50_hen",
+    "category": "hen",
+    "label": "hen",
+    "esc50_fold": "1",
+    "source": "ESC-50",
+    "description": "hen clucking, rhythmic short calls, barnyard outdoor, mid-frequency"
+  },
+  {
+    "id": "esc50_engine",
+    "category": "engine",
+    "label": "engine",
+    "esc50_fold": "1",
+    "source": "ESC-50",
+    "description": "car engine idling, mechanical rumble, exhaust resonance, outdoor"
+  },
+  {
+    "id": "esc50_breathing",
+    "category": "breathing",
+    "label": "breathing",
+    "esc50_fold": "1",
+    "source": "ESC-50",
+    "description": "slow deep breathing, close-mic, soft nasal air, quiet interior"
+  },
+  {
+    "id": "esc50_crying_baby",
+    "category": "crying_baby",
+    "label": "crying baby",
+    "esc50_fold": "1",
+    "source": "ESC-50",
+    "description": "infant crying, high-pitched wail, short breath gaps, indoor room"
+  },
+  {
+    "id": "esc50_hand_saw",
+    "category": "hand_saw",
+    "label": "hand saw",
+    "esc50_fold": "1",
+    "source": "ESC-50",
+    "description": "hand saw cutting wood, rhythmic scraping, sawdust texture, workshop"
+  },
+  {
+    "id": "esc50_coughing",
+    "category": "coughing",
+    "label": "coughing",
+    "esc50_fold": "1",
+    "source": "ESC-50",
+    "description": "dry cough burst, throat clearing, close-mic, indoor room"
+  },
+  {
+    "id": "esc50_glass_breaking",
+    "category": "glass_breaking",
+    "label": "glass breaking",
+    "esc50_fold": "1",
+    "source": "ESC-50",
+    "description": "glass shattering, high-frequency crystal impact, cascading shards"
+  },
+  {
+    "id": "esc50_snoring",
+    "category": "snoring",
+    "label": "snoring",
+    "esc50_fold": "1",
+    "source": "ESC-50",
+    "description": "deep rhythmic snoring, low nasal drone, bedroom quiet ambience"
+  },
+  {
+    "id": "esc50_toilet_flush",
+    "category": "toilet_flush",
+    "label": "toilet flush",
+    "esc50_fold": "1",
+    "source": "ESC-50",
+    "description": "toilet flushing, rushing water swirl, bathroom reverb, gurgle tail"
+  },
+  {
+    "id": "esc50_pig",
+    "category": "pig",
+    "label": "pig",
+    "esc50_fold": "1",
+    "source": "ESC-50",
+    "description": "pig oinking, nasal grunt, barnyard outdoor, close proximity"
+  },
+  {
+    "id": "esc50_washing_machine",
+    "category": "washing_machine",
+    "label": "washing machine",
+    "esc50_fold": "1",
+    "source": "ESC-50",
+    "description": "washing machine cycle, drum rotation hum, water slosh, laundry room"
+  },
+  {
+    "id": "esc50_clock_tick",
+    "category": "clock_tick",
+    "label": "clock tick",
+    "esc50_fold": "1",
+    "source": "ESC-50",
+    "description": "wall clock ticking, precise rhythmic tick-tock, quiet indoor room"
+  },
+  {
+    "id": "esc50_sneezing",
+    "category": "sneezing",
+    "label": "sneezing",
+    "esc50_fold": "1",
+    "source": "ESC-50",
+    "description": "sharp sneeze burst, nasal explosive transient, close-mic, brief"
+  },
+  {
+    "id": "esc50_rooster",
+    "category": "rooster",
+    "label": "rooster",
+    "esc50_fold": "1",
+    "source": "ESC-50",
+    "description": "rooster crowing, bright resonant call, outdoor farmyard, morning ambience"
+  },
+  {
+    "id": "esc50_sea_waves",
+    "category": "sea_waves",
+    "label": "sea waves",
+    "esc50_fold": "1",
+    "source": "ESC-50",
+    "description": "ocean waves breaking on shore, rhythmic wash and retreat, open beach"
+  },
+  {
+    "id": "esc50_siren",
+    "category": "siren",
+    "label": "siren",
+    "esc50_fold": "1",
+    "source": "ESC-50",
+    "description": "emergency siren wail, rising and falling pitch, Doppler, outdoor street"
+  },
+  {
+    "id": "esc50_cat",
+    "category": "cat",
+    "label": "cat",
+    "esc50_fold": "1",
+    "source": "ESC-50",
+    "description": "soft indoor meow, slight upward pitch inflection, close-mic, light reverb"
+  },
+  {
+    "id": "esc50_door_wood_creaks",
+    "category": "door_wood_creaks",
+    "label": "door wood creaks",
+    "esc50_fold": "1",
+    "source": "ESC-50",
+    "description": "creaking door hinge, slow metallic groan, horror atmosphere"
+  },
+  {
+    "id": "esc50_crickets",
+    "category": "crickets",
+    "label": "crickets",
+    "esc50_fold": "1",
+    "source": "ESC-50",
+    "description": "cricket chirping, rhythmic high-pitched stridulation, quiet night outdoors"
+  }
+]
