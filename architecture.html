@@ -3,12 +3,12 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Audify.ai — Architecture</title>
+<title>Audify.ai Architecture</title>
 <style>
   * { margin: 0; padding: 0; box-sizing: border-box; }
 
   body {
-    background: #080b12;
+    background: #060910;
     color: #e2e8f0;
     font-family: 'Segoe UI', system-ui, sans-serif;
     min-height: 100vh;
@@ -16,350 +16,381 @@
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    padding: 40px 20px;
+    padding: 48px 32px;
+    gap: 0;
   }
 
   h1 {
-    font-size: 1.4rem;
+    font-size: 1.1rem;
     font-weight: 600;
-    letter-spacing: 0.15em;
+    letter-spacing: 0.2em;
     text-transform: uppercase;
-    color: #94a3b8;
-    margin-bottom: 48px;
+    color: #475569;
+    margin-bottom: 56px;
   }
   h1 span { color: #00ff87; }
 
-  .arch {
+  /* ── SECTION LABEL ── */
+  .section-label {
+    font-size: 0.6rem;
+    font-weight: 700;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: #334155;
+    margin-bottom: 20px;
+    text-align: center;
+  }
+
+  /* ── ROW ── */
+  .row {
     display: flex;
     align-items: center;
-    gap: 0;
     width: 100%;
-    max-width: 1100px;
+    max-width: 1160px;
+    gap: 0;
   }
 
-  /* ── columns ── */
-  .col {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 12px;
-    flex: 1;
-  }
-
-  /* ── arrows ── */
-  .arrow {
+  /* ── ARROW ── */
+  .arr {
     display: flex;
     flex-direction: column;
     align-items: center;
     gap: 4px;
     flex-shrink: 0;
-    width: 72px;
+    width: 64px;
   }
-  .arrow-line {
+  .arr-line {
     width: 100%;
-    height: 2px;
-    background: linear-gradient(90deg, #334155, #00ff87, #334155);
+    height: 1.5px;
+    background: linear-gradient(90deg, #1e293b 0%, #00ff87 50%, #1e293b 100%);
     position: relative;
   }
-  .arrow-line::after {
+  .arr-line::after {
     content: '';
     position: absolute;
-    right: -1px;
-    top: -5px;
-    border: 6px solid transparent;
+    right: -1px; top: -4px;
+    border: 5px solid transparent;
     border-left-color: #00ff87;
   }
-  .arrow-label {
-    font-size: 0.62rem;
-    color: #475569;
+  .arr-lbl {
+    font-size: 0.55rem;
+    color: #334155;
     text-align: center;
-    letter-spacing: 0.04em;
+    line-height: 1.3;
   }
 
-  /* ── boxes ── */
-  .box {
-    background: #0f172a;
+  /* ── NODE ── */
+  .node {
+    flex: 1;
+    background: #0b1120;
     border: 1px solid #1e293b;
-    border-radius: 12px;
-    padding: 20px 18px;
-    width: 100%;
+    border-radius: 10px;
+    padding: 18px 16px;
     text-align: center;
     position: relative;
   }
-
-  .box-title {
-    font-size: 0.7rem;
+  .node-tag {
+    font-size: 0.58rem;
     font-weight: 700;
-    letter-spacing: 0.12em;
+    letter-spacing: 0.14em;
     text-transform: uppercase;
-    margin-bottom: 10px;
+    margin-bottom: 8px;
   }
-
-  .box-name {
-    font-size: 1rem;
+  .node-name {
+    font-size: 0.95rem;
     font-weight: 600;
-    margin-bottom: 6px;
+    margin-bottom: 5px;
+    color: #f1f5f9;
   }
-
-  .box-sub {
-    font-size: 0.72rem;
-    color: #64748b;
-    line-height: 1.5;
+  .node-sub {
+    font-size: 0.68rem;
+    color: #475569;
+    line-height: 1.55;
   }
-
-  .box-file {
+  .node-file {
     display: inline-block;
     margin-top: 10px;
-    font-size: 0.62rem;
+    font-size: 0.58rem;
     font-family: 'Courier New', monospace;
-    background: #1e293b;
-    color: #94a3b8;
-    padding: 3px 8px;
+    background: #131c2e;
+    color: #64748b;
+    padding: 2px 8px;
     border-radius: 4px;
   }
 
-  /* colour themes */
-  .blue  { border-color: #3b82f6; }
-  .blue  .box-title { color: #3b82f6; }
+  .blue   { border-color: #2563eb; } .blue   .node-tag { color: #3b82f6; }
+  .purple { border-color: #6d28d9; } .purple .node-tag { color: #a78bfa; }
+  .green  { border-color: #059669; } .green  .node-tag { color: #10b981; }
+  .yellow { border-color: #d97706; } .yellow .node-tag { color: #fbbf24; }
+  .red    { border-color: #dc2626; } .red    .node-tag { color: #f87171; }
 
-  .purple { border-color: #7c3aed; }
-  .purple .box-title { color: #a78bfa; }
-
-  .green  { border-color: #10b981; }
-  .green  .box-title { color: #10b981; }
-
-  .orange { border-color: #f59e0b; }
-  .orange .box-title { color: #fbbf24; }
-
-  .cyan { border-color: #06b6d4; }
-  .cyan .box-title { color: #22d3ee; }
-
-  /* ── input / output pill ── */
+  /* ── INPUT / OUTPUT pill ── */
   .pill {
-    background: #0f172a;
-    border: 2px solid #00ff87;
-    border-radius: 99px;
-    padding: 14px 28px;
-    text-align: center;
-    width: 100%;
-  }
-  .pill-label { font-size: 0.65rem; color: #00ff87; letter-spacing: 0.1em; text-transform: uppercase; margin-bottom: 4px; }
-  .pill-value { font-size: 0.85rem; color: #e2e8f0; font-style: italic; }
-
-  /* ── branch arrows (YES / NO split) ── */
-  .branch-block {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 0;
-    width: 100%;
-  }
-
-  .branch-row {
-    display: flex;
-    align-items: center;
-    gap: 0;
-    width: 100%;
-  }
-
-  /* fallback row */
-  .fallback-row {
-    display: flex;
-    flex-direction: column;
-    gap: 8px;
-    width: 100%;
-    margin-top: 8px;
-  }
-  .fallback-box {
-    background: #0f172a;
-    border: 1px dashed #334155;
-    border-radius: 8px;
-    padding: 10px 14px;
-    font-size: 0.68rem;
-    color: #64748b;
+    flex-shrink: 0;
+    width: 110px;
+    background: #0b1120;
+    border: 1.5px solid #00ff87;
+    border-radius: 50px;
+    padding: 14px 10px;
     text-align: center;
   }
-  .fallback-box span { display: block; color: #94a3b8; font-size: 0.72rem; font-weight: 600; margin-bottom: 2px; }
+  .pill-lbl { font-size: 0.55rem; color: #00ff87; letter-spacing: 0.1em; text-transform: uppercase; margin-bottom: 3px; }
+  .pill-val { font-size: 0.78rem; color: #e2e8f0; font-style: italic; }
 
-  /* ── diamond ── */
+  /* ── DECISION DIAMOND ── */
   .diamond-wrap {
+    flex-shrink: 0;
+    width: 90px;
     display: flex;
     flex-direction: column;
     align-items: center;
+    gap: 0;
   }
   .diamond {
-    width: 72px;
-    height: 72px;
-    background: #0f172a;
-    border: 2px solid #7c3aed;
+    width: 70px; height: 70px;
+    background: #0b1120;
+    border: 1.5px solid #6d28d9;
     transform: rotate(45deg);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    flex-shrink: 0;
+    display: flex; align-items: center; justify-content: center;
   }
   .diamond-text {
     transform: rotate(-45deg);
-    font-size: 0.6rem;
+    font-size: 0.55rem;
     font-weight: 700;
     color: #a78bfa;
     text-align: center;
     letter-spacing: 0.04em;
-    line-height: 1.3;
     text-transform: uppercase;
+    line-height: 1.4;
+  }
+  .d-yes { font-size: 0.55rem; color: #10b981; font-weight: 700; margin-top: 6px; }
+  .d-no  { font-size: 0.55rem; color: #f59e0b; font-weight: 700; }
+
+  /* ── VERTICAL CONNECTOR ── */
+  .vconn {
+    width: 100%;
+    max-width: 1160px;
+    display: flex;
+    justify-content: center;
+    margin: 0;
+  }
+  .vline {
+    width: 1.5px;
+    height: 36px;
+    background: linear-gradient(180deg, #1e293b, #1e293b);
   }
 
-  /* ── legend ── */
+  /* ── BOTTOM GRID ── */
+  .bottom-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 14px;
+    width: 100%;
+    max-width: 1160px;
+    margin-top: 0;
+  }
+
+  /* ── FALLBACK STRIP ── */
+  .fallback-strip {
+    width: 100%;
+    max-width: 1160px;
+    display: flex;
+    gap: 14px;
+    margin-top: 14px;
+  }
+  .fallback {
+    flex: 1;
+    background: #0b1120;
+    border: 1px dashed #1e293b;
+    border-radius: 8px;
+    padding: 10px 14px;
+    text-align: center;
+    font-size: 0.65rem;
+    color: #334155;
+  }
+  .fallback span { display: block; color: #475569; font-size: 0.68rem; font-weight: 600; margin-bottom: 2px; }
+
+  /* ── LEGEND ── */
   .legend {
     display: flex;
-    gap: 28px;
-    margin-top: 48px;
+    gap: 24px;
+    margin-top: 44px;
     flex-wrap: wrap;
     justify-content: center;
   }
-  .legend-item {
+  .leg { display: flex; align-items: center; gap: 7px; font-size: 0.65rem; color: #475569; }
+  .dot { width: 9px; height: 9px; border-radius: 50%; flex-shrink: 0; }
+
+  /* ── SCRAPE ROW ── */
+  .scrape-row {
     display: flex;
     align-items: center;
-    gap: 8px;
-    font-size: 0.72rem;
-    color: #64748b;
+    gap: 14px;
+    width: 100%;
+    max-width: 1160px;
+    margin-bottom: 40px;
+    padding: 16px 20px;
+    background: #0b1120;
+    border: 1px solid #1e293b;
+    border-radius: 10px;
   }
-  .legend-dot {
-    width: 10px;
-    height: 10px;
+  .scrape-step {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex: 1;
+  }
+  .scrape-num {
+    width: 24px; height: 24px;
     border-radius: 50%;
+    background: #131c2e;
+    border: 1px solid #334155;
+    font-size: 0.65rem;
+    font-weight: 700;
+    color: #64748b;
+    display: flex; align-items: center; justify-content: center;
     flex-shrink: 0;
   }
+  .scrape-text { font-size: 0.68rem; color: #64748b; line-height: 1.4; }
+  .scrape-text strong { color: #94a3b8; display: block; }
+  .scrape-div { width: 1px; height: 32px; background: #1e293b; flex-shrink: 0; }
+  .scrape-arr { font-size: 0.7rem; color: #334155; flex-shrink: 0; }
 </style>
 </head>
 <body>
 
 <h1>Audify.ai &nbsp;—&nbsp; <span>Agentic Pipeline Architecture</span></h1>
 
-<div class="arch">
+<!-- SCRAPING PHASE -->
+<div style="width:100%;max-width:1160px;margin-bottom:10px;" class="section-label">Data Collection Phase — scrape.py</div>
+<div class="scrape-row">
+  <div class="scrape-step">
+    <div class="scrape-num">1</div>
+    <div class="scrape-text"><strong>ESC-50 Dataset</strong>2000 labeled clips · GitHub CSV</div>
+  </div>
+  <div class="scrape-arr">→</div>
+  <div class="scrape-step">
+    <div class="scrape-num">2</div>
+    <div class="scrape-text"><strong>scrape.py</strong>Fetch CSV · deduplicate · enrich with acoustic language</div>
+  </div>
+  <div class="scrape-arr">→</div>
+  <div class="scrape-step">
+    <div class="scrape-num">3</div>
+    <div class="scrape-text"><strong>scraped_sounds.json</strong>50 expert acoustic descriptions</div>
+  </div>
+  <div class="scrape-arr">→</div>
+  <div class="scrape-step">
+    <div class="scrape-num">4</div>
+    <div class="scrape-text"><strong>ChromaDB Index</strong>Sentence embeddings · HNSW cosine index · in-process</div>
+  </div>
+</div>
+
+<!-- MAIN PIPELINE -->
+<div style="width:100%;max-width:1160px;margin-bottom:10px;" class="section-label">Runtime Pipeline — agent.py</div>
+
+<div class="row">
 
   <!-- INPUT -->
-  <div class="col" style="max-width:140px;">
-    <div class="pill">
-      <div class="pill-label">User Input</div>
-      <div class="pill-value">"wolf howling"</div>
-    </div>
+  <div class="pill">
+    <div class="pill-lbl">Browser Input</div>
+    <div class="pill-val">"wolf howling"</div>
   </div>
 
-  <!-- arrow -->
-  <div class="arrow">
-    <div class="arrow-line"></div>
-    <div class="arrow-label">raw text</div>
+  <div class="arr">
+    <div class="arr-line"></div>
+    <div class="arr-lbl">POST /generate<br>FastAPI</div>
   </div>
 
-  <!-- STAGE 1 — LLM -->
-  <div class="col">
-    <div class="box blue">
-      <div class="box-title">Stage 1</div>
-      <div class="box-name">LLM Elaboration</div>
-      <div class="box-sub">Qwen 2.5 72B<br>HuggingFace Router</div>
-      <div class="box-file">tools.py → elaborate_prompt()</div>
-    </div>
-    <div class="fallback-box">
-      <span>Keyword Fallback</span>
-      if no HF API key
-    </div>
+  <!-- STAGE 1 -->
+  <div class="node blue">
+    <div class="node-tag">Stage 1</div>
+    <div class="node-name">LLM Elaboration</div>
+    <div class="node-sub">Qwen 2.5 72B<br>HuggingFace Router<br>Expert sound designer prompt</div>
+    <div class="node-file">tools.py → elaborate_prompt()</div>
   </div>
 
-  <!-- arrow -->
-  <div class="arrow">
-    <div class="arrow-line"></div>
-    <div class="arrow-label">acoustic<br>description</div>
+  <div class="arr">
+    <div class="arr-line"></div>
+    <div class="arr-lbl">acoustic<br>description</div>
   </div>
 
-  <!-- STAGE 2 — ChromaDB -->
-  <div class="col">
-    <div class="box purple">
-      <div class="box-title">Stage 2</div>
-      <div class="box-name">Vector Search</div>
-      <div class="box-sub">ChromaDB<br>60 expert descriptions<br>Cosine similarity (&lt; 0.45)</div>
-      <div class="box-file">database.py → vector_search()</div>
-    </div>
+  <!-- STAGE 2 -->
+  <div class="node purple">
+    <div class="node-tag">Stage 2</div>
+    <div class="node-name">ChromaDB Search</div>
+    <div class="node-sub">Embed query → cosine similarity<br>HNSW index · 50 descriptions<br>Threshold: distance &lt; 0.45</div>
+    <div class="node-file">database.py → vector_search()</div>
   </div>
 
-  <!-- diamond -->
-  <div class="arrow" style="width:88px; flex-direction:column; align-items:center; gap:6px;">
-    <div style="width:2px; height:16px; background:#334155; margin:0 auto;"></div>
-    <div class="diamond">
-      <div class="diamond-text">Match<br>found?</div>
-    </div>
-    <div style="width:2px; height:16px; background:#334155; margin:0 auto;"></div>
+  <!-- DIAMOND -->
+  <div class="diamond-wrap">
+    <div class="diamond"><div class="diamond-text">Match<br>found?</div></div>
+    <div class="d-yes">YES ↓</div>
+    <div class="d-no">NO ↓</div>
   </div>
 
-  <!-- STAGE 3 — Generate -->
-  <div class="col">
-    <div class="box green">
-      <div class="box-title">Stage 3</div>
-      <div class="box-name">Audio Generation</div>
-      <div class="box-sub">ElevenLabs<br>Sound Generation API<br>prompt_influence=0.5 · 5s</div>
-      <div class="box-file">tools.py → generate_audio()</div>
-    </div>
-    <div class="fallback-box">
-      <span>Procedural Fallback</span>
-      Pure Python · 16 sound recipes
-    </div>
+  <!-- STAGE 3 -->
+  <div class="node green">
+    <div class="node-tag">Stage 3</div>
+    <div class="node-name">Audio Generation</div>
+    <div class="node-sub">ElevenLabs API<br>prompt_influence: 0.5<br>duration: 5s · WAV output</div>
+    <div class="node-file">tools.py → generate_audio()</div>
   </div>
 
-  <!-- arrow -->
-  <div class="arrow">
-    <div class="arrow-line"></div>
-    <div class="arrow-label">WAV bytes</div>
+  <div class="arr">
+    <div class="arr-line"></div>
+    <div class="arr-lbl">WAV stream<br>GET /audio</div>
   </div>
 
   <!-- OUTPUT -->
-  <div class="col" style="max-width:140px;">
-    <div class="pill">
-      <div class="pill-label">Audio Output</div>
-      <div class="pill-value">🔊 .wav stream</div>
-    </div>
+  <div class="pill">
+    <div class="pill-lbl">Browser Output</div>
+    <div class="pill-val">🔊 Audio plays</div>
   </div>
 
 </div>
 
-<!-- YES / NO labels under diamond -->
-<div style="max-width:1100px; width:100%; display:flex; justify-content:flex-end; padding-right: calc(50% - 1100px/2 + 140px + 72px + 180px + 44px); margin-top:-8px; gap:48px;">
-  <span style="font-size:0.65rem; color:#10b981; font-weight:700; letter-spacing:0.08em;">YES → use matched description</span>
-  <span style="font-size:0.65rem; color:#f59e0b; font-weight:700; letter-spacing:0.08em;">NO → use LLM description</span>
+<!-- FALLBACK STRIP -->
+<div class="fallback-strip">
+  <div style="width:110px; flex-shrink:0;"></div>
+  <div style="width:64px; flex-shrink:0;"></div>
+  <div class="fallback"><span>Keyword Fallback</span>if no HuggingFace key</div>
+  <div style="width:64px; flex-shrink:0;"></div>
+  <div class="fallback" style="grid-column:span 2"><span>—</span></div>
+  <div style="width:90px; flex-shrink:0;"></div>
+  <div class="fallback"><span>Procedural Fallback</span>Pure Python · 16 sound recipes · no API needed</div>
+  <div style="width:64px; flex-shrink:0;"></div>
+  <div style="width:110px; flex-shrink:0;"></div>
 </div>
 
-<!-- second row — backend/frontend layer -->
-<div style="max-width:1100px; width:100%; margin-top:52px; display:flex; gap:16px;">
-
-  <div class="box cyan" style="flex:1;">
-    <div class="box-title">Backend</div>
-    <div class="box-name">FastAPI</div>
-    <div class="box-sub">POST /generate &nbsp;·&nbsp; GET /audio &nbsp;·&nbsp; GET /download<br>Uvicorn · serves frontend static files</div>
-    <div class="box-file">main.py</div>
+<!-- BOTTOM LAYER -->
+<div style="width:100%;max-width:1160px;margin-top:32px;" class="section-label">Infrastructure</div>
+<div class="bottom-grid">
+  <div class="node yellow">
+    <div class="node-tag">Orchestrator</div>
+    <div class="node-name">agent.py</div>
+    <div class="node-sub">Calls Stage 1 → 2 → 3<br>Returns description + source + audio<br>source: "retrieved" or "generated"</div>
   </div>
-
-  <div class="box orange" style="flex:1;">
-    <div class="box-title">Agent Orchestrator</div>
-    <div class="box-name">run_agent()</div>
-    <div class="box-sub">Calls Stage 1 → 2 → 3 in sequence<br>Returns description + source + audio path</div>
-    <div class="box-file">agent.py</div>
+  <div class="node" style="border-color:#22d3ee;">
+    <div class="node-tag" style="color:#22d3ee;">Backend</div>
+    <div class="node-name">FastAPI · main.py</div>
+    <div class="node-sub">POST /generate<br>GET /audio · GET /download<br>Serves frontend static files</div>
   </div>
-
-  <div class="box" style="flex:1; border-color:#334155;">
-    <div class="box-title" style="color:#94a3b8;">Frontend</div>
-    <div class="box-name">Three.js UI</div>
-    <div class="box-sub">3D particle orb · playing card deck<br>Audio-reactive visualizer · Dark UI</div>
-    <div class="box-file">frontend/index.html</div>
+  <div class="node" style="border-color:#334155;">
+    <div class="node-tag" style="color:#64748b;">Frontend</div>
+    <div class="node-name">Three.js UI</div>
+    <div class="node-sub">3D particle orb · audio-reactive<br>CSS 3D playing card deck<br>Vanilla JS · no framework</div>
   </div>
-
 </div>
 
-<!-- legend -->
+<!-- LEGEND -->
 <div class="legend">
-  <div class="legend-item"><div class="legend-dot" style="background:#3b82f6;"></div> LLM Layer</div>
-  <div class="legend-item"><div class="legend-dot" style="background:#7c3aed;"></div> Vector DB Layer</div>
-  <div class="legend-item"><div class="legend-dot" style="background:#10b981;"></div> Audio Generation</div>
-  <div class="legend-item"><div class="legend-dot" style="background:#22d3ee;"></div> API / Serving</div>
-  <div class="legend-item"><div class="legend-dot" style="background:#334155;"></div> Fallback (no API key)</div>
+  <div class="leg"><div class="dot" style="background:#3b82f6;"></div>LLM Layer</div>
+  <div class="leg"><div class="dot" style="background:#7c3aed;"></div>Vector DB (ChromaDB)</div>
+  <div class="leg"><div class="dot" style="background:#10b981;"></div>Audio Generation</div>
+  <div class="leg"><div class="dot" style="background:#fbbf24;"></div>Orchestration</div>
+  <div class="leg"><div class="dot" style="background:#22d3ee;"></div>API / Serving</div>
+  <div class="leg"><div class="dot" style="background:#334155;"></div>Fallback</div>
 </div>
 
 </body>
