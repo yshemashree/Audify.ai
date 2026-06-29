@@ -5,6 +5,7 @@ import math
 import random
 import requests
 from dotenv import load_dotenv
+from database import vector_search
 
 load_dotenv()
 HF_TOKEN = os.getenv("HUGGINGFACE_API_TOKEN")
@@ -404,26 +405,18 @@ def elaborate_prompt(prompt: str) -> str:
 
 def search_audio(elaborated_prompt: str) -> str:
     """
-    Searches a database of existing audio clips using semantic similarity.
-    Returns a URL to a matching audio clip if similarity is above threshold, otherwise returns 'NO_MATCH'.
-
-    Args:
-        elaborated_prompt: A detailed description of the sound to search for.
-
-    Returns:
-        A URL string if a match is found, or 'NO_MATCH' if no close match exists.
+    Searches the ChromaDB vector database for a semantically similar expert sound description.
+    Returns the matched description if cosine distance is below threshold, else 'NO_MATCH'.
+    On match, the matched expert description is used for generation instead of the raw elaboration.
     """
-    best_score = 0.0
-    best_url = None
-
-    for item in SOUND_DB:
-        score = keyword_similarity(elaborated_prompt, item["description"])
-        if score > best_score:
-            best_score = score
-            best_url = item["url"]
-
-    if best_score >= 0.3:
-        return best_url
+    try:
+        match = vector_search(elaborated_prompt)
+        if match:
+            description, label, distance = match
+            print(f"[ChromaDB] Match: '{label}' (distance={distance:.3f})")
+            return description
+    except Exception as e:
+        print(f"[ChromaDB] Search error: {e}")
     return "NO_MATCH"
 
 def generate_audio(elaborated_prompt: str) -> str:
