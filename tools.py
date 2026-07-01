@@ -331,7 +331,7 @@ def generate_local_audio(prompt: str, path: str = "generated_audio.wav") -> str:
             break
     if fn is None:
         fn = generate_noise
-    samples = fn()
+    samples = fn(duration=12)
     write_wav(path, samples)
     return path
 
@@ -441,7 +441,7 @@ def generate_audio(elaborated_prompt: str) -> str:
                     "xi-api-key": ELEVENLABS_KEY,
                     "Content-Type": "application/json",
                 },
-                json={"text": elaborated_prompt, "duration_seconds": 5.0, "prompt_influence": 0.5},
+                json={"text": elaborated_prompt, "duration_seconds": 12.0, "prompt_influence": 0.5},
                 timeout=30,
             )
             if response.status_code == 200:
