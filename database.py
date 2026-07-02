@@ -91,7 +91,7 @@ def _get_collection():
     return _collection
 
 
-def vector_search(query: str, threshold: float = 0.45):
+def vector_search(query: str, threshold: float = 0.15):
     """
     Query the ChromaDB collection with cosine similarity.
     Returns (description, label, distance) if distance < threshold, else None.
