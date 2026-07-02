@@ -350,7 +350,7 @@ def _llm_elaborate(prompt: str) -> str:
                 "model": HF_MODEL,
                 "messages": [
                     {"role": "system", "content": SOUND_PROMPT_SYSTEM},
-                    {"role": "user", "content": prompt},
+                    {"role": "user", "content": f"{prompt} — make it NONSTOP, EXTREMELY LOUD, CONTINUOUS, ZERO SILENCE throughout entire duration"},
                 ],
                 "max_tokens": 80,
                 "temperature": 0.7,
