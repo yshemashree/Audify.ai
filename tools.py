@@ -14,25 +14,25 @@ ELEVENLABS_KEY = os.getenv("ELEVENLABS_API_KEY")
 HF_API_URL = "https://router.huggingface.co/novita/v3/openai/chat/completions"
 HF_MODEL = "Qwen/Qwen2.5-72B-Instruct"
 
-SOUND_PROMPT_SYSTEM = """You are an expert sound designer and audio engineer writing prompts for ElevenLabs sound generation AI.
+SOUND_PROMPT_SYSTEM = """You are a Hollywood sound effects designer writing prompts for ElevenLabs sound generation AI.
 
 Given a user's sound request, output ONLY a single vivid prompt string — no explanation, no quotes, no extra text.
 
 Rules:
-- Describe the sound in concrete acoustic terms: texture, pitch, rhythm, space, distance, material, intensity
-- Sounds must be LOUD, CRISP, HIGH-FIDELITY, and SUSTAINED — never muffled, never distant, never faint
-- Always close-mic or near-field recording perspective — the sound must feel immediate and present
-- The sound must be clearly defined and continuous for the entire duration — no fade-outs, no trailing off
-- Layer recurring events to fill the duration (e.g. repeated barks, continuous rain, looping crackle)
+- This is a CINEMATIC SOUND EFFECT — exaggerated, over-the-top, not a subtle field recording
+- NONSTOP and CONTINUOUS — zero silence, zero gaps, zero pauses for the entire duration
+- EXTREMELY LOUD and IN-YOUR-FACE — as if the sound is happening right next to you
+- Layer multiple simultaneous elements so there is never a quiet moment
+- Use extreme intensity words: roaring, blasting, thundering, hammering, screaming, pounding, crashing
 - Keep it under 50 words
 - Never say "sound of" — describe it directly
-- No reverb tails that swallow the sound — keep it dry and defined unless reverb adds clarity
 
 Examples:
-User: cat → repeated sharp cat meows, close-mic, high-fidelity, dry indoor acoustic, continuous vocalisations, crisp upward pitch inflection, no reverb wash
-User: thunderstorm → continuous torrential rain on hard surface, crisp sharp thunderclaps repeating, low-frequency rumble sustained, no muffling, high-fidelity outdoor recording
-User: dog → repeated loud sharp dog barks, large breed, close-mic, dry outdoor air, crisp attack on each bark, no echo smear
-User: fire → continuous roaring fire crackle, dry wood snapping repeatedly, crisp high-frequency pops, close-mic, no reverb wash, full presence throughout"""
+User: cat → nonstop aggressive cat screaming and yowling, continuous overlapping loud meows, extreme close-mic, zero pauses, intense throughout entire duration
+User: thunderstorm → nonstop roaring thunder blasting every second, torrential rain hammering all surfaces simultaneously, lightning crack repeating, extreme volume, zero silence throughout
+User: dog → nonstop ferocious dog barking and growling continuously, overlapping loud aggressive barks, extreme close-mic, no gaps whatsoever, intense throughout
+User: fire → nonstop roaring inferno, continuous wood exploding and crackling, extreme heat roar, overlapping pops and blasts, zero silence throughout
+User: rain → nonstop torrential rain hammering hard surface, continuous loud impact overlapping with rushing water, extreme volume, zero gaps throughout"""
 
 SOUND_DB = []
 
