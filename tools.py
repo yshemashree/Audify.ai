@@ -423,6 +423,7 @@ CINEMATIC_SOUNDS = {
     "crow": "nonstop crows cawing loudly, continuous overlapping harsh caws, extreme close-mic, zero silence throughout",
     "rooster": "nonstop rooster crowing loudly, continuous overlapping loud crows, extreme close-mic, zero gaps throughout",
     "duck": "nonstop ducks quacking loudly, continuous overlapping quacks, extreme close-mic, zero pauses throughout",
+    "donkey": "nonstop donkey braying loudly, continuous overlapping hee-haw calls, extreme close-mic, obnoxious and loud, zero pauses throughout",
 }
 
 def elaborate_prompt(prompt: str) -> str:
