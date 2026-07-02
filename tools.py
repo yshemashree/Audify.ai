@@ -363,51 +363,65 @@ def _llm_elaborate(prompt: str) -> str:
         pass
     return None
 
+CINEMATIC_SOUNDS = {
+    "cat": "nonstop aggressive cat screaming and yowling continuously, overlapping loud meows, extreme close-mic, zero pauses, intense vocalisation entire duration",
+    "kitten": "nonstop loud kitten meowing and crying continuously, overlapping high-pitched calls, extreme close-mic, zero pauses throughout",
+    "dog": "nonstop ferocious dog barking and growling, overlapping loud aggressive barks, extreme close-mic, zero gaps, relentless throughout entire duration",
+    "puppy": "nonstop loud puppy barking and whining continuously, overlapping high-pitched yaps, extreme close-mic, zero pauses throughout",
+    "wolf": "nonstop wolf howling continuously, overlapping long sustained howls with vibrato, pack calling, extreme outdoor, zero silence throughout",
+    "rain": "nonstop torrential rain hammering every surface simultaneously, overlapping with rushing water and loud impacts, extreme volume, zero gaps throughout",
+    "thunder": "nonstop roaring thunder blasting every second, torrential rain hammering all surfaces, lightning cracks repeating continuously, extreme volume, zero silence",
+    "storm": "nonstop violent thunderstorm roaring, continuous lightning blasts overlapping with torrential rain, howling wind screaming, extreme volume throughout",
+    "lightning": "nonstop lightning cracking and thundering, continuous electric blasts overlapping, torrential rain beneath, extreme intensity throughout",
+    "fire": "nonstop roaring inferno blasting, continuous wood exploding and crackling, extreme heat roar overlapping with pops, zero silence throughout",
+    "campfire": "nonstop campfire roaring and crackling, continuous wood popping and snapping, extreme close-mic, overlapping crackle, zero gaps throughout",
+    "explosion": "nonstop massive explosions blasting, continuous shockwaves and debris, overlapping detonations, extreme volume, zero silence throughout",
+    "wind": "nonstop howling wind screaming, continuous gusts roaring through everything, overlapping whipping air, extreme volume, zero pauses throughout",
+    "ocean": "nonstop ocean waves crashing and roaring, continuous overlapping wave impacts on shore, extreme volume, foam hissing, zero silence throughout",
+    "wave": "nonstop massive waves crashing and roaring, continuous overlapping surf pounding shore, extreme volume, zero gaps throughout",
+    "water": "nonstop rushing water roaring, continuous torrential flow crashing over rocks, overlapping splashing and gushing, extreme volume throughout",
+    "waterfall": "nonstop waterfall roaring, continuous massive water crashing, overlapping thunderous impact, extreme volume, zero silence throughout",
+    "crowd": "nonstop massive crowd screaming and cheering, continuous overlapping voices roaring, stadium noise blasting, extreme volume throughout",
+    "heartbeat": "nonstop loud thumping heartbeat pounding, continuous strong two-thud rhythm at 72bpm, extreme close-mic, overlapping beats, zero silence",
+    "bird": "nonstop loud bird chorus screaming, continuous overlapping calls and chirps from multiple birds, extreme close-mic, zero gaps throughout",
+    "forest": "nonstop loud forest cacophony, continuous overlapping bird calls, wind in trees, insects, extreme outdoor volume throughout",
+    "keyboard": "nonstop rapid keyboard typing blasting, continuous overlapping click-clack, extreme close-mic, keys hammering nonstop, zero gaps throughout",
+    "clock": "nonstop loud clock ticking pounding, continuous sharp tick-tock, extreme close-mic, overlapping rhythm, zero pauses throughout",
+    "footstep": "nonstop footsteps pounding, continuous rapid running impacts, extreme close-mic, overlapping thuds on floor, zero pauses throughout",
+    "car": "nonstop car engine roaring, continuous revving and acceleration, extreme close-mic, overlapping mechanical noise, zero silence throughout",
+    "engine": "nonstop engine roaring and revving, continuous mechanical blasting, extreme close-mic, overlapping pistons, zero gaps throughout",
+    "train": "nonstop train roaring past, continuous track clatter pounding, whistle screaming, overlapping mechanical noise, extreme volume throughout",
+    "helicopter": "nonstop helicopter rotor blasting, continuous thwop thwop pounding, engine screaming, overlapping air displacement, extreme volume throughout",
+    "gun": "nonstop gunshots blasting, continuous overlapping shots firing rapidly, extreme loud crack each shot, zero gaps throughout",
+    "glass": "nonstop glass shattering and smashing, continuous overlapping breaking impacts, extreme close-mic, cascading shards, zero silence throughout",
+    "bell": "nonstop bells ringing and clanging, continuous overlapping resonant tones, extreme close-mic, zero pauses throughout",
+    "piano": "nonstop piano playing loudly, continuous overlapping notes and chords hammering, extreme close-mic, zero gaps throughout",
+    "guitar": "nonstop guitar strumming loudly, continuous overlapping chords, extreme close-mic, strings ringing, zero pauses throughout",
+    "drum": "nonstop drums pounding, continuous overlapping beats blasting, extreme close-mic, zero gaps, relentless rhythm throughout",
+    "robot": "nonstop robotic noise blasting, continuous overlapping servo whirs and mechanical clicks, beeps repeating, extreme close-mic throughout",
+    "siren": "nonstop siren wailing, continuous loud rising-falling pitch, overlapping emergency tones, extreme volume, zero pauses throughout",
+    "alarm": "nonstop alarm blasting, continuous overlapping loud beeps, extreme volume, zero gaps, relentless throughout",
+    "snore": "nonstop extremely loud snoring, continuous overlapping deep nasal rumble, extreme close-mic, zero pauses throughout",
+    "laugh": "nonstop loud hysterical laughing, continuous overlapping laughter, extreme close-mic, zero gaps throughout",
+    "scream": "nonstop screaming at extreme volume, continuous overlapping human screams, extreme close-mic, zero pauses throughout",
+    "crowd": "nonstop crowd roaring, continuous overlapping screaming and cheering, extreme stadium volume, zero silence throughout",
+    "city": "nonstop city noise blasting, continuous overlapping traffic, horns, voices, extreme outdoor volume throughout",
+}
+
 def elaborate_prompt(prompt: str) -> str:
-    """
-    Takes a short user prompt and expands it into a detailed acoustic description
-    optimised for ElevenLabs sound generation.
+    prompt_lower = prompt.lower().strip()
 
-    Args:
-        prompt: The short user input describing a sound (e.g. 'cat', 'rain', 'thunder').
+    # Check cinematic library first — guaranteed loud nonstop output
+    for key, description in CINEMATIC_SOUNDS.items():
+        if key in prompt_lower:
+            return description
 
-    Returns:
-        A detailed acoustic description of the sound as a string.
-    """
-    # Try LLM first
+    # LLM for unknown sounds
     result = _llm_elaborate(prompt)
     if result:
         return result
 
-    # Keyword fallback if no HF token or API failure
-    expansions = {
-        "cat": "repeated loud crisp cat meows, close-mic, high-fidelity, sharp upward pitch, dry indoor acoustic, continuous vocalisations throughout",
-        "rain": "continuous heavy rain on hard surface, crisp high-density impact, loud sustained rainfall, no muffling, close-mic outdoor recording",
-        "thunder": "repeated sharp thunderclaps, continuous torrential rain, loud low-frequency rumble sustained, crisp high-fidelity outdoor, no reverb wash",
-        "storm": "violent continuous thunderstorm, repeated lightning cracks, torrential rain on surface, howling wind, crisp and loud throughout",
-        "ocean": "continuous loud ocean waves crashing on shore, crisp foam hiss, rhythmic wave impacts repeating, high-fidelity beach recording",
-        "dog": "repeated loud sharp dog barks, large breed, close-mic, crisp attack each bark, dry outdoor air, continuous barking throughout",
-        "bird": "continuous loud bird chorus, multiple species chirping repeatedly, crisp high-frequency calls, close-mic forest, no reverb smear",
-        "fire": "continuous roaring fire crackle, crisp dry wood snapping repeatedly, loud high-frequency pops, close-mic, full presence throughout",
-        "campfire": "loud continuous campfire crackling, crisp repeated wood pops and snaps, close-mic, dry outdoor night air, no reverb wash",
-        "clock": "crisp loud mechanical clock ticking, close-mic, sharp precise 1Hz rhythm, dry indoor acoustic, continuous throughout",
-        "wind": "continuous loud wind rush, crisp gusts repeating, howling through open space, high-fidelity outdoor recording, sustained throughout",
-        "keyboard": "continuous rapid mechanical keyboard typing, crisp loud click-clack, close-mic, dry office acoustic, sustained typing throughout",
-        "footsteps": "continuous footsteps on hardwood floor, crisp loud impact each step, close-mic, steady walking pace, dry indoor acoustic",
-        "car": "loud car engine running continuously, crisp mechanical rumble, close-mic outdoor, engine revving repeatedly, high-fidelity recording",
-        "water": "continuous loud rushing water stream, crisp turbulent flow over rocks, close-mic, high-fidelity outdoor nature recording",
-        "crowd": "continuous loud crowd noise, overlapping crisp voices, busy indoor ambience, high-fidelity, sustained throughout",
-        "heartbeat": "loud continuous human heartbeat, crisp close-mic chest thump, strong two-thud rhythm at 72bpm, dry acoustic, sustained",
-        "wave": "repeated loud ocean waves crashing on shore, crisp foam hiss, close-mic beach, high-fidelity, continuous wave impacts",
-        "wolf": "repeated loud wolf howls, crisp sustained notes with vibrato, close-mic outdoor night, high-fidelity, continuous howling throughout",
-        "rain": "continuous heavy rain on hard surface, crisp high-density impact, loud sustained rainfall, no muffling, close-mic outdoor recording",
-        "thunder": "repeated sharp thunderclaps, continuous torrential rain, loud low-frequency rumble sustained, crisp high-fidelity outdoor, no reverb wash",
-    }
-    prompt_lower = prompt.lower().strip()
-    for key, description in expansions.items():
-        if key in prompt_lower:
-            return description
-    return f"realistic high-fidelity sound of {prompt}, natural acoustic environment, clear recording"
+    return f"nonstop continuous loud {prompt} blasting, extreme volume, overlapping sounds, zero silence, zero gaps throughout entire duration"
 
 def search_audio(elaborated_prompt: str) -> str:
     """
