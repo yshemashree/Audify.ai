@@ -20,18 +20,19 @@ Given a user's sound request, output ONLY a single vivid prompt string — no ex
 
 Rules:
 - Describe the sound in concrete acoustic terms: texture, pitch, rhythm, space, distance, material, intensity
-- Sounds must be LOUD, FULL, and SUSTAINED — not faint, not brief, not fading
-- The sound must be clearly defined and present for the entire duration — continuous, rich, immersive
-- Include acoustic environment (indoors, outdoors, reverb, echo, close-mic, distant)
-- Mention layered elements to fill the full duration (e.g. sustained ambience + recurring foreground events)
+- Sounds must be LOUD, CRISP, HIGH-FIDELITY, and SUSTAINED — never muffled, never distant, never faint
+- Always close-mic or near-field recording perspective — the sound must feel immediate and present
+- The sound must be clearly defined and continuous for the entire duration — no fade-outs, no trailing off
+- Layer recurring events to fill the duration (e.g. repeated barks, continuous rain, looping crackle)
 - Keep it under 50 words
 - Never say "sound of" — describe it directly
-- Make it specific enough that an AI can synthesize it accurately
+- No reverb tails that swallow the sound — keep it dry and defined unless reverb adds clarity
 
 Examples:
-User: cat → loud sustained cat meowing repeatedly, close-mic, domestic shorthair, sharp upward pitch inflection, continuous vocalisations, light room reverb
-User: thunderstorm → continuous heavy rain on leaves, repeated thunderclaps overhead, rolling low-frequency rumble sustained throughout, wide outdoor reverb, storm fully present
-User: robot booting up → sustained rising electronic hum, repeated servo whirs and mechanical clicks, ascending beep tones looping, industrial resonance throughout, metallic texture"""
+User: cat → repeated sharp cat meows, close-mic, high-fidelity, dry indoor acoustic, continuous vocalisations, crisp upward pitch inflection, no reverb wash
+User: thunderstorm → continuous torrential rain on hard surface, crisp sharp thunderclaps repeating, low-frequency rumble sustained, no muffling, high-fidelity outdoor recording
+User: dog → repeated loud sharp dog barks, large breed, close-mic, dry outdoor air, crisp attack on each bark, no echo smear
+User: fire → continuous roaring fire crackle, dry wood snapping repeatedly, crisp high-frequency pops, close-mic, no reverb wash, full presence throughout"""
 
 SOUND_DB = []
 
@@ -380,24 +381,27 @@ def elaborate_prompt(prompt: str) -> str:
 
     # Keyword fallback if no HF token or API failure
     expansions = {
-        "cat": "soft indoor meow, slight upward pitch, close-mic, light reverb",
-        "rain": "heavy rain on a rooftop, steady white-noise wash, occasional drip",
-        "thunder": "deep rolling thunder crack, heavy rain on leaves, wide outdoor reverb",
-        "storm": "violent thunderstorm, lightning crack, torrential rain, howling wind",
-        "ocean": "slow waves breaking on sand, foam hiss, seagull distant, open air",
-        "dog": "sharp medium-dog bark, outdoor echo, three bursts with short pauses",
-        "birds": "dawn chorus, multiple bird species chirping, forest reverb, gentle",
-        "fire": "dry wood crackling, occasional pop, warm low rumble, close-mic",
-        "campfire": "campfire crackling under open sky, wood pop, night ambience",
-        "clock": "mechanical clock ticking, quiet room, steady 1Hz rhythm, close-mic",
-        "wind": "gusty wind through tree leaves, low whistle, outdoor open field",
-        "keyboard": "rapid mechanical keyboard typing, clicks and clacks, office room",
-        "footsteps": "footsteps on hardwood floor, steady walking pace, slight echo",
-        "car": "car engine cold start, rev, drive away fade, outdoor reverb",
-        "water": "water stream over rocks, gentle gurgle, outdoor natural reverb",
-        "crowd": "busy indoor crowd murmur, overlapping voices, restaurant ambience",
-        "heartbeat": "steady human heartbeat 72bpm, close-mic, two-thud rhythm",
-        "wave": "ocean wave rolling onto shore, foam hiss, receding water pull",
+        "cat": "repeated loud crisp cat meows, close-mic, high-fidelity, sharp upward pitch, dry indoor acoustic, continuous vocalisations throughout",
+        "rain": "continuous heavy rain on hard surface, crisp high-density impact, loud sustained rainfall, no muffling, close-mic outdoor recording",
+        "thunder": "repeated sharp thunderclaps, continuous torrential rain, loud low-frequency rumble sustained, crisp high-fidelity outdoor, no reverb wash",
+        "storm": "violent continuous thunderstorm, repeated lightning cracks, torrential rain on surface, howling wind, crisp and loud throughout",
+        "ocean": "continuous loud ocean waves crashing on shore, crisp foam hiss, rhythmic wave impacts repeating, high-fidelity beach recording",
+        "dog": "repeated loud sharp dog barks, large breed, close-mic, crisp attack each bark, dry outdoor air, continuous barking throughout",
+        "bird": "continuous loud bird chorus, multiple species chirping repeatedly, crisp high-frequency calls, close-mic forest, no reverb smear",
+        "fire": "continuous roaring fire crackle, crisp dry wood snapping repeatedly, loud high-frequency pops, close-mic, full presence throughout",
+        "campfire": "loud continuous campfire crackling, crisp repeated wood pops and snaps, close-mic, dry outdoor night air, no reverb wash",
+        "clock": "crisp loud mechanical clock ticking, close-mic, sharp precise 1Hz rhythm, dry indoor acoustic, continuous throughout",
+        "wind": "continuous loud wind rush, crisp gusts repeating, howling through open space, high-fidelity outdoor recording, sustained throughout",
+        "keyboard": "continuous rapid mechanical keyboard typing, crisp loud click-clack, close-mic, dry office acoustic, sustained typing throughout",
+        "footsteps": "continuous footsteps on hardwood floor, crisp loud impact each step, close-mic, steady walking pace, dry indoor acoustic",
+        "car": "loud car engine running continuously, crisp mechanical rumble, close-mic outdoor, engine revving repeatedly, high-fidelity recording",
+        "water": "continuous loud rushing water stream, crisp turbulent flow over rocks, close-mic, high-fidelity outdoor nature recording",
+        "crowd": "continuous loud crowd noise, overlapping crisp voices, busy indoor ambience, high-fidelity, sustained throughout",
+        "heartbeat": "loud continuous human heartbeat, crisp close-mic chest thump, strong two-thud rhythm at 72bpm, dry acoustic, sustained",
+        "wave": "repeated loud ocean waves crashing on shore, crisp foam hiss, close-mic beach, high-fidelity, continuous wave impacts",
+        "wolf": "repeated loud wolf howls, crisp sustained notes with vibrato, close-mic outdoor night, high-fidelity, continuous howling throughout",
+        "rain": "continuous heavy rain on hard surface, crisp high-density impact, loud sustained rainfall, no muffling, close-mic outdoor recording",
+        "thunder": "repeated sharp thunderclaps, continuous torrential rain, loud low-frequency rumble sustained, crisp high-fidelity outdoor, no reverb wash",
     }
     prompt_lower = prompt.lower().strip()
     for key, description in expansions.items():
