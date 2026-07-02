@@ -406,6 +406,23 @@ CINEMATIC_SOUNDS = {
     "scream": "nonstop screaming at extreme volume, continuous overlapping human screams, extreme close-mic, zero pauses throughout",
     "crowd": "nonstop crowd roaring, continuous overlapping screaming and cheering, extreme stadium volume, zero silence throughout",
     "city": "nonstop city noise blasting, continuous overlapping traffic, horns, voices, extreme outdoor volume throughout",
+    "lion": "nonstop lion roaring continuously, overlapping deep thunderous roars blasting, extreme close-mic, ferocious throughout, zero silence",
+    "tiger": "nonstop tiger roaring and snarling, continuous overlapping deep growls and roars, extreme close-mic, zero pauses throughout",
+    "bear": "nonstop bear growling and roaring, continuous overlapping deep aggressive growls, extreme close-mic, zero gaps throughout",
+    "elephant": "nonstop elephant trumpeting loudly, continuous overlapping trumpet blasts, extreme close-mic, zero silence throughout",
+    "horse": "nonstop horse neighing and galloping, continuous overlapping loud neighs, hooves pounding, extreme close-mic throughout",
+    "cow": "nonstop cow mooing loudly, continuous overlapping deep moos, extreme close-mic, zero pauses throughout",
+    "pig": "nonstop pig squealing and oinking, continuous overlapping loud squeals, extreme close-mic, zero gaps throughout",
+    "frog": "nonstop frogs croaking loudly, continuous overlapping croaks from multiple frogs, extreme close-mic, zero silence throughout",
+    "snake": "nonstop snake hissing aggressively, continuous overlapping loud hisses, extreme close-mic, zero gaps throughout",
+    "bee": "nonstop bees buzzing loudly, continuous overlapping aggressive buzz from swarm, extreme close-mic, zero pauses throughout",
+    "insect": "nonstop insect buzzing and chirping, continuous overlapping loud drone, extreme close-mic, zero silence throughout",
+    "monkey": "nonstop monkeys screeching and howling, continuous overlapping loud calls, extreme close-mic, zero gaps throughout",
+    "bird": "nonstop loud bird chorus screaming, continuous overlapping calls and chirps from multiple birds, extreme close-mic, zero gaps throughout",
+    "eagle": "nonstop eagle screeching, continuous overlapping loud piercing cries, extreme close-mic, zero pauses throughout",
+    "crow": "nonstop crows cawing loudly, continuous overlapping harsh caws, extreme close-mic, zero silence throughout",
+    "rooster": "nonstop rooster crowing loudly, continuous overlapping loud crows, extreme close-mic, zero gaps throughout",
+    "duck": "nonstop ducks quacking loudly, continuous overlapping quacks, extreme close-mic, zero pauses throughout",
 }
 
 def elaborate_prompt(prompt: str) -> str:
@@ -421,7 +438,7 @@ def elaborate_prompt(prompt: str) -> str:
     if result:
         return result
 
-    return f"nonstop continuous loud {prompt} blasting, extreme volume, overlapping sounds, zero silence, zero gaps throughout entire duration"
+    return f"nonstop {prompt} sound blasting continuously, overlapping loud {prompt} sounds, extreme close-mic, extreme volume, zero silence, zero gaps throughout entire duration"
 
 def search_audio(elaborated_prompt: str) -> str:
     """
