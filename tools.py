@@ -20,16 +20,18 @@ Given a user's sound request, output ONLY a single vivid prompt string — no ex
 
 Rules:
 - Describe the sound in concrete acoustic terms: texture, pitch, rhythm, space, distance, material, intensity
+- Sounds must be LOUD, FULL, and SUSTAINED — not faint, not brief, not fading
+- The sound must be clearly defined and present for the entire duration — continuous, rich, immersive
 - Include acoustic environment (indoors, outdoors, reverb, echo, close-mic, distant)
-- Mention layered elements if relevant (e.g. background ambience + foreground event)
-- Keep it under 40 words
+- Mention layered elements to fill the full duration (e.g. sustained ambience + recurring foreground events)
+- Keep it under 50 words
 - Never say "sound of" — describe it directly
 - Make it specific enough that an AI can synthesize it accurately
 
 Examples:
-User: cat → soft indoor meow, slight upward pitch inflection, close-mic, domestic shorthair, light room reverb
-User: thunderstorm → deep rolling thunder crack overhead, heavy rain on leaves, distant rumble tail, wide outdoor reverb
-User: robot booting up → rising electronic hum, servo whir, three ascending beep tones, industrial hiss, metallic resonance"""
+User: cat → loud sustained cat meowing repeatedly, close-mic, domestic shorthair, sharp upward pitch inflection, continuous vocalisations, light room reverb
+User: thunderstorm → continuous heavy rain on leaves, repeated thunderclaps overhead, rolling low-frequency rumble sustained throughout, wide outdoor reverb, storm fully present
+User: robot booting up → sustained rising electronic hum, repeated servo whirs and mechanical clicks, ascending beep tones looping, industrial resonance throughout, metallic texture"""
 
 SOUND_DB = []
 
@@ -441,7 +443,7 @@ def generate_audio(elaborated_prompt: str) -> str:
                     "xi-api-key": ELEVENLABS_KEY,
                     "Content-Type": "application/json",
                 },
-                json={"text": elaborated_prompt, "duration_seconds": 22.0, "prompt_influence": 0.5},
+                json={"text": elaborated_prompt, "duration_seconds": 22.0, "prompt_influence": 0.9},
                 timeout=30,
             )
             if response.status_code == 200:
