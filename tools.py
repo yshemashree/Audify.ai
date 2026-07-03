@@ -432,6 +432,16 @@ CINEMATIC_SOUNDS = {
     "baby cry": "newborn baby crying desperately, high-pitched piercing wail, gasping breath before each cry, nasal quality, continuous overlapping cries with no pauses, close-mic indoor",
     "heartbeat fast": "racing heartbeat pounding rapidly, strong double-thud at 140bpm, adrenaline intensity, low-frequency cardiac muscle, close-mic chest, continuous fast pounding throughout",
     "ocean storm": "ocean in full storm, massive waves crashing violently, howling wind over water, spray and foam roaring, deep water movement underneath, overwhelming continuous force throughout",
+    "female": "young woman speaking and laughing naturally, clear bright vocal tone, warm close-mic indoor recording, conversational speech with natural breath, continuous talking throughout",
+    "woman": "young adult woman talking and laughing, clear bright female vocal tone, close-mic dry indoor, natural conversational speech, continuous voice throughout",
+    "girl": "young girl talking and giggling, high bright vocal tone, natural speech rhythm, close-mic indoor, cheerful continuous vocalisation throughout",
+    "female voice": "young woman speaking clearly, bright warm female vocal tone, close-mic studio quality, natural speech cadence, continuous clear voice throughout",
+    "woman voice": "young adult woman speaking naturally, clear bright vocal tone, close-mic dry acoustic, warm conversational delivery, continuous throughout",
+    "female laugh": "young woman laughing genuinely, bright high-pitched laughter, breathless giggles layering, close-mic indoor, warm and natural, continuous laughter throughout",
+    "female scream": "young woman screaming in shock, high-pitched piercing scream, sharp attack, close-mic, raw and immediate, repeated screams overlapping throughout",
+    "male": "adult man speaking with deep clear voice, warm baritone tone, close-mic dry indoor, natural conversational speech, continuous voice throughout",
+    "man": "adult male speaking naturally, deep warm baritone, close-mic studio quality, natural speech rhythm, continuous throughout",
+    "male voice": "adult man speaking clearly, deep resonant baritone, close-mic dry acoustic, authoritative tone, continuous clear voice throughout",
 }
 
 def elaborate_prompt(prompt: str) -> str:
