@@ -462,6 +462,10 @@ CINEMATIC_SOUNDS = {
     "subway": "underground subway train arriving, screeching metal brakes on rails, wind rushing through tunnel, doors opening with pneumatic hiss, crowd noise, continuous urban underground noise",
     "factory": "industrial factory floor at full production, heavy machinery pounding rhythmically, metal pressing and stamping, conveyor belts humming, steam releasing, all layering in continuous industrial roar",
     "chainsaw forest": "chainsaw cutting through dense forest, engine screaming, wood splintering, massive tree cracking and crashing to ground, birds scattering, continuous aggressive mechanical and natural noise",
+    "traffic": "heavy city traffic jam, multiple car engines idling and revving, horns honking repeatedly, truck diesel rumble, bus brakes hissing, motorbikes weaving, continuous dense urban road noise throughout",
+    "traffic noise": "busy urban traffic, overlapping car engines, aggressive horn honking, truck rumble, screeching brakes, ambulance siren passing, pedestrian crossing beep, continuous dense road noise throughout",
+    "road": "busy road traffic, constant stream of passing vehicles, car engines dopplering, truck airbrakes, motorbike acceleration, continuous urban road ambience throughout",
+    "highway": "busy highway with fast moving vehicles, continuous whoosh of cars passing at speed, truck airblast, engine roar, tyre noise on asphalt, relentless high-speed traffic throughout",
 }
 
 def elaborate_prompt(prompt: str) -> str:
