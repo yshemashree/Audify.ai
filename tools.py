@@ -10,6 +10,7 @@ from database import vector_search
 load_dotenv()
 HF_TOKEN = os.getenv("HUGGINGFACE_API_TOKEN")
 ELEVENLABS_KEY = os.getenv("ELEVENLABS_API_KEY")
+FREESOUND_KEY = os.getenv("FREESOUND_API_KEY")
 
 HF_API_URL = "https://router.huggingface.co/novita/v3/openai/chat/completions"
 HF_MODEL = "Qwen/Qwen2.5-72B-Instruct"
@@ -494,19 +495,54 @@ def search_audio(elaborated_prompt: str) -> str:
         print(f"[ChromaDB] Search error: {e}")
     return "NO_MATCH"
 
+def freesound_search(prompt: str) -> str | None:
+    """Search Freesound for a matching cinematic sound effect and download it."""
+    if not FREESOUND_KEY:
+        return None
+    try:
+        response = requests.get(
+            "https://freesound.org/apiv2/search/text/",
+            params={
+                "query": prompt,
+                "token": FREESOUND_KEY,
+                "fields": "name,previews,duration",
+                "filter": "duration:[5 TO 30]",
+                "sort": "rating_desc",
+                "page_size": 1,
+            },
+            timeout=10,
+        )
+        if response.status_code != 200:
+            return None
+        results = response.json().get("results", [])
+        if not results:
+            return None
+        preview_url = results[0]["previews"]["preview-hq-mp3"]
+        print(f"[Freesound] Match: {results[0]['name']}")
+        audio = requests.get(preview_url, timeout=15)
+        if audio.status_code == 200:
+            path = "generated_audio.mp3"
+            with open(path, "wb") as f:
+                f.write(audio.content)
+            return path
+    except Exception as e:
+        print(f"[Freesound] Error: {e}")
+    return None
+
+
 def generate_audio(elaborated_prompt: str) -> str:
     """
-    Generates a new audio clip from scratch. Tries ElevenLabs sound generation
-    first (any sound, AI quality), falls back to local procedural synthesis.
-    Saves the result as a .wav file and returns the file path.
-
-    Args:
-        elaborated_prompt: A detailed description of the sound to generate.
-
-    Returns:
-        The file path to the generated .wav audio file as a string.
+    Three-tier audio pipeline:
+    1. Freesound — real professional cinematic sound effects
+    2. ElevenLabs — AI sound generation
+    3. Procedural fallback — pure Python synthesis
     """
     output_path = "generated_audio.wav"
+
+    # Tier 1 — Freesound professional sound effects
+    freesound_result = freesound_search(elaborated_prompt)
+    if freesound_result:
+        return freesound_result
 
     if ELEVENLABS_KEY:
         try:

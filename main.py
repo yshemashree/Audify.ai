@@ -38,17 +38,20 @@ async def generate_sound(request: PromptRequest):
 
 @app.get("/audio")
 async def serve_audio():
-    path = "generated_audio.wav"
-    if not os.path.exists(path):
-        raise HTTPException(status_code=404, detail="No generated audio file found")
-    return FileResponse(path, media_type="audio/wav")
+    for path, mime in [("generated_audio.mp3", "audio/mpeg"), ("generated_audio.wav", "audio/wav")]:
+        if os.path.exists(path):
+            return FileResponse(path, media_type=mime)
+    raise HTTPException(status_code=404, detail="No generated audio file found")
 
 @app.get("/download")
 async def download_audio():
-    path = "generated_audio.wav"
-    if not os.path.exists(path):
-        raise HTTPException(status_code=404, detail="No generated audio file found")
-    return FileResponse(path, media_type="audio/wav", filename="audify_output.wav", headers={"Content-Disposition": "attachment; filename=audify_output.wav"})
+    for path, mime, name in [
+        ("generated_audio.mp3", "audio/mpeg", "audify_output.mp3"),
+        ("generated_audio.wav", "audio/wav", "audify_output.wav"),
+    ]:
+        if os.path.exists(path):
+            return FileResponse(path, media_type=mime, filename=name, headers={"Content-Disposition": f"attachment; filename={name}"})
+    raise HTTPException(status_code=404, detail="No generated audio file found")
 
 @app.get("/health")
 async def health():
