@@ -506,7 +506,7 @@ def freesound_search(prompt: str) -> str | None:
                 "query": prompt,
                 "token": FREESOUND_KEY,
                 "fields": "name,previews,duration",
-                "filter": "duration:[5 TO 30]",
+                "filter": "duration:[12 TO 60]",
                 "sort": "rating_desc",
                 "page_size": 1,
             },
