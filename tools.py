@@ -447,8 +447,8 @@ CINEMATIC_SOUNDS = {
 def elaborate_prompt(prompt: str) -> str:
     prompt_lower = prompt.lower().strip()
 
-    # Check cinematic library first — guaranteed loud nonstop output
-    for key, description in CINEMATIC_SOUNDS.items():
+    # Check cinematic library — longest key match first to avoid "male" matching inside "female"
+    for key, description in sorted(CINEMATIC_SOUNDS.items(), key=lambda x: -len(x[0])):
         if key in prompt_lower:
             return description
 
