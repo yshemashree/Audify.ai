@@ -422,6 +422,16 @@ CINEMATIC_SOUNDS = {
     "rooster": "rooster crowing at maximum volume, bright resonant cock-a-doodle-doo with sharp attack and long sustain, nasal texture on each crow, multiple crows overlapping before previous ends, close-mic outdoor morning air, continuous throughout",
     "duck": "large group of ducks quacking loudly and continuously, nasal honking quack texture, multiple ducks overlapping simultaneously, water splashing underneath, close-mic outdoor wet acoustic, relentless overlapping quacking throughout",
     "donkey": "donkey braying with full dramatic hee-haw, enormous nasal intake on hee followed by explosive honking haw, multiple brays overlapping, close-mic outdoor, ridiculous volume and texture, continuous overlapping braying throughout",
+    "moan": "deep human moaning in pain or agony, low guttural vocal tone sustained, raspy breath texture, repeated moans layering continuously, close-mic dry acoustic, raw emotional intensity throughout",
+    "groan": "deep human groaning in pain, low sustained guttural vocalisation, strained breath between groans, repeated overlapping, close-mic dry acoustic, continuous throughout",
+    "wind howl": "howling wind through narrow gaps, high-pitched eerie whistle layering over deep pressure roar, gusts intensifying and fading rhythmically, outdoor exposed location, continuous haunting howl",
+    "chainsaw": "petrol chainsaw running at full throttle, high-frequency blade screaming, two-stroke engine rattling, cutting through wood creating pitch variations, sawdust and mechanical noise, continuous aggressive mechanical roar",
+    "drill": "electric power drill running continuously, high-pitched motor whine, bit spinning creating vibration, drilling into material adding crunch texture, close-mic, continuous mechanical noise throughout",
+    "construction": "loud construction site, jackhammer pounding concrete, drills whirring, heavy machinery beeping reversing, workers shouting, metal clanging, all layering simultaneously in continuous industrial noise",
+    "crowd cheer": "massive crowd erupting in cheer, tens of thousands of voices roaring simultaneously, clapping and stomping layering underneath, individual shouts emerging, continuous wave of human energy",
+    "baby cry": "newborn baby crying desperately, high-pitched piercing wail, gasping breath before each cry, nasal quality, continuous overlapping cries with no pauses, close-mic indoor",
+    "heartbeat fast": "racing heartbeat pounding rapidly, strong double-thud at 140bpm, adrenaline intensity, low-frequency cardiac muscle, close-mic chest, continuous fast pounding throughout",
+    "ocean storm": "ocean in full storm, massive waves crashing violently, howling wind over water, spray and foam roaring, deep water movement underneath, overwhelming continuous force throughout",
 }
 
 def elaborate_prompt(prompt: str) -> str:
@@ -477,7 +487,7 @@ def generate_audio(elaborated_prompt: str) -> str:
                     "xi-api-key": ELEVENLABS_KEY,
                     "Content-Type": "application/json",
                 },
-                json={"text": elaborated_prompt, "duration_seconds": 22.0, "prompt_influence": 0.9},
+                json={"text": elaborated_prompt, "duration_seconds": 15.0, "prompt_influence": 0.9},
                 timeout=30,
             )
             if response.status_code == 200:
