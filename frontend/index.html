@@ -7,6 +7,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com"/>
   <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=DM+Sans:wght@300;400;500&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet"/>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+  <script src="samples/samples.js"></script>
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
     :root {
@@ -783,19 +784,23 @@ const API_BASE = (() => {
   return location.origin;
 })();
 
-const ENGINE_LABEL = {
-  'freesound+elevenlabs': 'Freesound recording + ElevenLabs layered, cinematic master',
-  freesound: 'Real recording from Freesound, cinematic master',
-  elevenlabs: 'Generated with ElevenLabs, cinematic master',
-  procedural: 'Synthesised offline, cinematic master',
+const ENGINE_NAMES = {
+  library: 'Real recordings (built-in)',
+  freesound: 'Freesound',
+  elevenlabs: 'ElevenLabs',
+  procedural: 'Synthesised offline',
 };
+function engineLabel(engine) {
+  const parts = (engine || '').split('+').map(e => ENGINE_NAMES[e] || e).filter(Boolean);
+  return parts.length ? parts.join(' + ') + ' · cinematic master' : 'Sound ready';
+}
 
 async function checkServer() {
   try {
     const res = await fetch(API_BASE + '/health', { cache: 'no-store' });
     if (!res.ok) throw new Error();
   } catch {
-    setStatus('error', `Can't reach the Audify server at ${API_BASE}. Start it with: uvicorn main:app --port 8000`, false);
+    setStatus('error', `Offline: can't reach the Audify server at ${API_BASE}. The sample sounds below still play. For anything else start the server: uvicorn main:app --port 8000`, false);
   }
 }
 checkServer();
@@ -814,6 +819,32 @@ async function generate() {
   document.getElementById('resultBox').className = 'result-box';
   setStatus('loading', 'Generating your sound...', true);
 
+  const showResult = (description, badgeText, audioSrc, downloadSrc, status) => {
+    window._vizSetLoading(false);
+    document.getElementById('resultDesc').textContent = description;
+    const badge = document.getElementById('badge');
+    badge.textContent = badgeText;
+    badge.className = 'badge ' + (badgeText === 'generated' ? 'generated' : 'retrieved');
+    player.src = audioSrc;
+    player.load();
+    const dlBtn = document.getElementById('downloadBtn');
+    dlBtn.href = downloadSrc;
+    dlBtn.style.display = 'inline-flex';
+    document.getElementById('resultBox').className = 'result-box show';
+    setStatus('success', status, false);
+    player.play().catch(() => {});
+  };
+
+  // Bundled recording for a sample prompt, used when the server can't be reached.
+  const playOfflineSample = () => {
+    const sample = (window.AUDIFY_SAMPLES || {})[prompt] ||
+      Object.entries(window.AUDIFY_SAMPLES || {}).find(([k]) => k.toLowerCase() === prompt.toLowerCase())?.[1];
+    if (!sample) return false;
+    const src = 'samples/' + sample.file;
+    showResult(sample.description, 'retrieved', src, src, engineLabel(sample.engine) + ' · offline');
+    return true;
+  };
+
   const controller = new AbortController();
   const timer = setTimeout(() => controller.abort(), 150000);
 
@@ -827,33 +858,19 @@ async function generate() {
         signal: controller.signal,
       });
     } catch (e) {
+      if (playOfflineSample()) return;
       if (e.name === 'AbortError') throw new Error('The server took too long to respond. Please try again.');
-      throw new Error(`Can't reach the Audify server at ${API_BASE}. Make sure it's running (uvicorn main:app --port 8000) and open http://localhost:8000.`);
+      throw new Error(`Can't reach the Audify server at ${API_BASE}. The sample chips play offline; for other sounds start the server (uvicorn main:app --port 8000) and open http://localhost:8000.`);
     }
+    if (res.status >= 500 && playOfflineSample()) return;
     if (!res.ok) {
       let detail = '';
       try { detail = (await res.json()).detail; } catch {}
       throw new Error(detail || 'Server error ' + res.status);
     }
     const data = await res.json();
-
-    window._vizSetLoading(false);
-
-    document.getElementById('resultDesc').textContent = data.description;
-    const badge = document.getElementById('badge');
-    badge.textContent = data.source === 'retrieved' ? 'retrieved' : 'generated';
-    badge.className = 'badge ' + (data.source === 'retrieved' ? 'retrieved' : 'generated');
-
-    player.src = API_BASE + data.audio_url;
-    player.load();
-
-    const dlBtn = document.getElementById('downloadBtn');
-    dlBtn.href = API_BASE + data.download_url;
-    dlBtn.style.display = 'inline-flex';
-
-    document.getElementById('resultBox').className = 'result-box show';
-    setStatus('success', ENGINE_LABEL[data.engine] || 'Sound ready', false);
-    player.play().catch(() => {});
+    showResult(data.description, data.source === 'retrieved' ? 'retrieved' : 'generated',
+      API_BASE + data.audio_url, API_BASE + data.download_url, engineLabel(data.engine));
   } catch (err) {
     window._vizSetLoading(false);
     setStatus('error', 'Error: ' + err.message, false);

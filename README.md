@@ -260,6 +260,28 @@ Typical result: 8–10 dB louder with far bigger, punchier impact.
 
 ---
 
+## Built-in real recordings (offline)
+
+`sounds/` ships real recordings for 37 categories, including 7 hand-scored glass shatters, dogs, cats, farm animals, rain, sea, fire, thunder, wind, water, birds, keyboard and traffic. They come from the ESC-50 dataset (originally Freesound). `library.py` builds sounds from them with no network or API keys:
+
+- **glass shattering**: real shatters played as separate hits, each layered with the ElevenLabs take when available
+- **glass cracking**: spidering cracks assembled from micro-fragments cut out of the real shatters; **glass cracks and shatters** escalates into a real break
+- **animals**: real calls sequenced with natural pauses; Freesound takes are mixed in when online
+- **scenes**: recorded beds chained with crossfades, with real events (horns, drips, birds) sprinkled over them
+
+Priority: built-in recordings, then Freesound/ElevenLabs, then the synth. Subjects the library has no recordings of (wolf, lion, horse, elephant, sci-fi) fall through to the online sources or the synth.
+
+**Offline sample chips**: `frontend/samples/` holds a pre-rendered MP3 for every sample chip. If the server can't be reached (no internet, server down, or `index.html` opened from disk), clicking a chip still plays its sound.
+
+Rebuild after changing things:
+
+```bash
+python scripts/build_sound_library.py    # re-download and re-score ESC-50 takes
+python scripts/build_offline_samples.py  # re-render the chip samples
+```
+
+> **License:** ESC-50 is CC BY-NC 3.0 (non-commercial; the ESC-10 subset is CC BY). See `sounds/CREDITS.md` for per-clip attribution. Before commercial use, replace `sounds/` with recordings you have commercial rights to (for example CC0 sounds from Freesound).
+
 ## Procedural fallback sounds
 
 When no API is available, Audify synthesises audio locally with numpy.

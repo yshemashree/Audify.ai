@@ -1,0 +1,293 @@
+{
+ "glass": {
+  "kind": "impact",
+  "files": [
+   "glass/1.mp3",
+   "glass/2.mp3",
+   "glass/3.mp3",
+   "glass/4.mp3",
+   "glass/5.mp3",
+   "glass/6.mp3",
+   "glass/7.mp3"
+  ]
+ },
+ "dog": {
+  "kind": "vocal",
+  "files": [
+   "dog/1.mp3",
+   "dog/2.mp3",
+   "dog/3.mp3",
+   "dog/4.mp3",
+   "dog/5.mp3"
+  ]
+ },
+ "cat": {
+  "kind": "vocal",
+  "files": [
+   "cat/1.mp3",
+   "cat/2.mp3",
+   "cat/3.mp3",
+   "cat/4.mp3",
+   "cat/5.mp3"
+  ]
+ },
+ "rooster": {
+  "kind": "vocal",
+  "files": [
+   "rooster/1.mp3",
+   "rooster/2.mp3",
+   "rooster/3.mp3"
+  ]
+ },
+ "cow": {
+  "kind": "vocal",
+  "files": [
+   "cow/1.mp3",
+   "cow/2.mp3",
+   "cow/3.mp3"
+  ]
+ },
+ "pig": {
+  "kind": "vocal",
+  "files": [
+   "pig/1.mp3",
+   "pig/2.mp3",
+   "pig/3.mp3"
+  ]
+ },
+ "sheep": {
+  "kind": "vocal",
+  "files": [
+   "sheep/1.mp3",
+   "sheep/2.mp3",
+   "sheep/3.mp3"
+  ]
+ },
+ "chicken": {
+  "kind": "vocal",
+  "files": [
+   "chicken/1.mp3",
+   "chicken/2.mp3",
+   "chicken/3.mp3"
+  ]
+ },
+ "frog": {
+  "kind": "vocal",
+  "files": [
+   "frog/1.mp3",
+   "frog/2.mp3",
+   "frog/3.mp3"
+  ]
+ },
+ "crow": {
+  "kind": "vocal",
+  "files": [
+   "crow/1.mp3",
+   "crow/2.mp3",
+   "crow/3.mp3"
+  ]
+ },
+ "laughing": {
+  "kind": "vocal",
+  "files": [
+   "laughing/1.mp3",
+   "laughing/2.mp3",
+   "laughing/3.mp3"
+  ]
+ },
+ "baby": {
+  "kind": "vocal",
+  "files": [
+   "baby/1.mp3",
+   "baby/2.mp3"
+  ]
+ },
+ "snoring": {
+  "kind": "vocal",
+  "files": [
+   "snoring/1.mp3",
+   "snoring/2.mp3"
+  ]
+ },
+ "rain": {
+  "kind": "ambience",
+  "files": [
+   "rain/1.mp3",
+   "rain/2.mp3",
+   "rain/3.mp3"
+  ]
+ },
+ "ocean": {
+  "kind": "ambience",
+  "files": [
+   "ocean/1.mp3",
+   "ocean/2.mp3",
+   "ocean/3.mp3"
+  ]
+ },
+ "fire": {
+  "kind": "ambience",
+  "files": [
+   "fire/1.mp3",
+   "fire/2.mp3",
+   "fire/3.mp3"
+  ]
+ },
+ "thunderstorm": {
+  "kind": "ambience",
+  "files": [
+   "thunderstorm/1.mp3",
+   "thunderstorm/2.mp3",
+   "thunderstorm/3.mp3",
+   "thunderstorm/4.mp3"
+  ]
+ },
+ "wind": {
+  "kind": "ambience",
+  "files": [
+   "wind/1.mp3",
+   "wind/2.mp3",
+   "wind/3.mp3"
+  ]
+ },
+ "water": {
+  "kind": "ambience",
+  "files": [
+   "water/1.mp3",
+   "water/2.mp3",
+   "water/3.mp3"
+  ]
+ },
+ "water drops": {
+  "kind": "ambience",
+  "files": [
+   "water_drops/1.mp3",
+   "water_drops/2.mp3"
+  ]
+ },
+ "birds": {
+  "kind": "ambience",
+  "files": [
+   "birds/1.mp3",
+   "birds/2.mp3",
+   "birds/3.mp3"
+  ]
+ },
+ "crickets": {
+  "kind": "ambience",
+  "files": [
+   "crickets/1.mp3",
+   "crickets/2.mp3"
+  ]
+ },
+ "insects": {
+  "kind": "ambience",
+  "files": [
+   "insects/1.mp3",
+   "insects/2.mp3"
+  ]
+ },
+ "keyboard": {
+  "kind": "ambience",
+  "files": [
+   "keyboard/1.mp3",
+   "keyboard/2.mp3",
+   "keyboard/3.mp3"
+  ]
+ },
+ "clock": {
+  "kind": "ambience",
+  "files": [
+   "clock/1.mp3",
+   "clock/2.mp3"
+  ]
+ },
+ "footsteps": {
+  "kind": "ambience",
+  "files": [
+   "footsteps/1.mp3",
+   "footsteps/2.mp3",
+   "footsteps/3.mp3"
+  ]
+ },
+ "engine": {
+  "kind": "ambience",
+  "files": [
+   "engine/1.mp3",
+   "engine/2.mp3"
+  ]
+ },
+ "train": {
+  "kind": "ambience",
+  "files": [
+   "train/1.mp3",
+   "train/2.mp3"
+  ]
+ },
+ "helicopter": {
+  "kind": "ambience",
+  "files": [
+   "helicopter/1.mp3",
+   "helicopter/2.mp3"
+  ]
+ },
+ "airplane": {
+  "kind": "ambience",
+  "files": [
+   "airplane/1.mp3",
+   "airplane/2.mp3"
+  ]
+ },
+ "chainsaw": {
+  "kind": "ambience",
+  "files": [
+   "chainsaw/1.mp3",
+   "chainsaw/2.mp3"
+  ]
+ },
+ "siren": {
+  "kind": "ambience",
+  "files": [
+   "siren/1.mp3",
+   "siren/2.mp3"
+  ]
+ },
+ "applause": {
+  "kind": "ambience",
+  "files": [
+   "applause/1.mp3",
+   "applause/2.mp3"
+  ]
+ },
+ "car horn": {
+  "kind": "impact",
+  "files": [
+   "car_horn/1.mp3",
+   "car_horn/2.mp3",
+   "car_horn/3.mp3"
+  ]
+ },
+ "fireworks": {
+  "kind": "impact",
+  "files": [
+   "fireworks/1.mp3",
+   "fireworks/2.mp3",
+   "fireworks/3.mp3"
+  ]
+ },
+ "bells": {
+  "kind": "impact",
+  "files": [
+   "bells/1.mp3",
+   "bells/2.mp3"
+  ]
+ },
+ "knock": {
+  "kind": "impact",
+  "files": [
+   "knock/1.mp3",
+   "knock/2.mp3",
+   "knock/3.mp3"
+  ]
+ }
+}

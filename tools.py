@@ -9,6 +9,7 @@ from database import vector_search
 from concurrent.futures import ThreadPoolExecutor
 from synth import render
 import mixer
+import library
 
 load_dotenv()
 log = logging.getLogger("audify")
@@ -462,6 +463,13 @@ def generate_audio(prompt: str, description: str, key: str | None, out_base: str
     el = mixer.decode(el_raw) if el_raw else None
     engines = "+".join(e for e, ok in (("freesound", fs), ("elevenlabs", el is not None)) if ok)
 
+    # Built-in real recordings first: works offline, and online takes are mixed in.
+    built = library.build(prompt, extra_takes=fs, sweetener=el)
+    if built is not None:
+        mix, lib_kind = built
+        engines = "+".join(["library"] + ([engines] if engines else []))
+        return mixer.write_audio(out_base, mixer.exaggerate(mix, lib_kind)), engines
+
     mix = None
     if kind == "ambience":
         if fs and el is not None:
@@ -480,7 +488,7 @@ def generate_audio(prompt: str, description: str, key: str | None, out_base: str
 
     if mix is not None:
         log.info("[Mix] %s via %s", kind, engines)
-        return mixer.write_wav(out_base + ".wav", mixer.exaggerate(mix, kind)), engines
+        return mixer.write_audio(out_base, mixer.exaggerate(mix, kind)), engines
 
     # Audio arrived but couldn't be decoded — serve it untouched rather than fail.
     for data, engine in ((fs_raw[0] if fs_raw else None, "freesound"), (el_raw, "elevenlabs")):
@@ -490,4 +498,4 @@ def generate_audio(prompt: str, description: str, key: str | None, out_base: str
     # Route the synth on what the user typed (plus the library key), not the long
     # description, which mentions many unrelated sounds ("rain", "wind", ...).
     x = render(f"{prompt} {key or ''}")
-    return mixer.write_wav(out_base + ".wav", mixer.exaggerate(x, kind)), "procedural"
+    return mixer.write_audio(out_base, mixer.exaggerate(x, kind)), "procedural"

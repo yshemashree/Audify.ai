@@ -48,6 +48,28 @@ def write_wav(path: str, x: np.ndarray) -> str:
     return path
 
 
+def write_audio(base: str, x: np.ndarray) -> str:
+    """Save as 192 kbps MP3 when an encoder is available (much smaller for the
+    browser), otherwise as 16-bit WAV. Returns the path written."""
+    try:
+        import lameenc
+
+        x = to_stereo(np.asarray(x))
+        enc = lameenc.Encoder()
+        enc.set_bit_rate(192)
+        enc.set_in_sample_rate(SR)
+        enc.set_channels(2)
+        enc.set_quality(2)
+        pcm = (np.clip(x, -1, 1) * 32767).astype("<i2")
+        data = bytes(enc.encode(pcm.tobytes()) + enc.flush())
+        path = base + ".mp3"
+        with open(path, "wb") as f:
+            f.write(data)
+        return path
+    except ImportError:
+        return write_wav(base + ".wav", x)
+
+
 def to_stereo(x: np.ndarray) -> np.ndarray:
     return np.stack([x, x], axis=1) if x.ndim == 1 else x
 
