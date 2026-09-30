@@ -1,19 +1,21 @@
 import os
+import re
 import time
-import struct
-import math
-import random
+import logging
 import requests
 from dotenv import load_dotenv
 from database import vector_search
+from synth import synthesize
 
 load_dotenv()
+log = logging.getLogger("audify")
+
 HF_TOKEN = os.getenv("HUGGINGFACE_API_TOKEN")
 ELEVENLABS_KEY = os.getenv("ELEVENLABS_API_KEY")
 FREESOUND_KEY = os.getenv("FREESOUND_API_KEY")
 
-HF_API_URL = "https://router.huggingface.co/novita/v3/openai/chat/completions"
-HF_MODEL = "Qwen/Qwen2.5-72B-Instruct"
+HF_API_URL = "https://router.huggingface.co/v1/chat/completions"
+HF_MODEL = os.getenv("HF_MODEL", "Qwen/Qwen2.5-72B-Instruct")
 
 SOUND_PROMPT_SYSTEM = """You are a Hollywood sound effects designer writing prompts for ElevenLabs sound generation AI.
 
@@ -34,335 +36,6 @@ User: thunderstorm → nonstop roaring thunder blasting every second, torrential
 User: dog → nonstop ferocious dog barking and growling continuously, overlapping loud aggressive barks, extreme close-mic, no gaps whatsoever, intense throughout
 User: fire → nonstop roaring inferno, continuous wood exploding and crackling, extreme heat roar, overlapping pops and blasts, zero silence throughout
 User: rain → nonstop torrential rain hammering hard surface, continuous loud impact overlapping with rushing water, extreme volume, zero gaps throughout"""
-
-SOUND_DB = []
-
-def keyword_similarity(query: str, description: str) -> float:
-    query_words = set(query.lower().split())
-    desc_words = set(description.lower().split())
-    if not query_words or not desc_words:
-        return 0.0
-    intersection = query_words & desc_words
-    return len(intersection) / len(query_words | desc_words)
-
-def write_wav(path: str, samples: list, sample_rate: int = 44100):
-    num_samples = len(samples)
-    with open(path, "wb") as f:
-        f.write(b"RIFF")
-        f.write(struct.pack("<I", 36 + num_samples * 2))
-        f.write(b"WAVE")
-        f.write(b"fmt ")
-        f.write(struct.pack("<I", 16))
-        f.write(struct.pack("<H", 1))   # PCM
-        f.write(struct.pack("<H", 1))   # mono
-        f.write(struct.pack("<I", sample_rate))
-        f.write(struct.pack("<I", sample_rate * 2))
-        f.write(struct.pack("<H", 2))   # block align
-        f.write(struct.pack("<H", 16))  # bits per sample
-        f.write(b"data")
-        f.write(struct.pack("<I", num_samples * 2))
-        for s in samples:
-            clamped = max(-1.0, min(1.0, s))
-            f.write(struct.pack("<h", int(clamped * 32767)))
-
-def clamp(v, lo=-1.0, hi=1.0):
-    return max(lo, min(hi, v))
-
-def generate_rain(duration=5, sr=44100):
-    n = duration * sr
-    # White noise with slight low-pass via running average
-    samples = []
-    prev = 0.0
-    for _ in range(n):
-        w = random.uniform(-1.0, 1.0)
-        s = 0.3 * w + 0.7 * prev
-        prev = s
-        samples.append(clamp(s * 0.8))
-    return samples
-
-def generate_thunder(duration=5, sr=44100):
-    n = duration * sr
-    samples = []
-    # Low rumble: sum of low-frequency sine waves + decaying noise burst
-    for i in range(n):
-        t = i / sr
-        rumble = (math.sin(2 * math.pi * 40 * t) * 0.3 +
-                  math.sin(2 * math.pi * 60 * t) * 0.2 +
-                  math.sin(2 * math.pi * 80 * t) * 0.1)
-        noise = random.uniform(-1.0, 1.0) * 0.4
-        envelope = math.exp(-t * 0.8)
-        samples.append(clamp((rumble + noise) * envelope))
-    return samples
-
-def generate_fire(duration=5, sr=44100):
-    n = duration * sr
-    samples = []
-    # Brown noise (integrated white noise)
-    prev = 0.0
-    for _ in range(n):
-        w = random.uniform(-0.02, 0.02)
-        prev = clamp(prev + w, -1.0, 1.0)
-        samples.append(prev * 0.7)
-    return samples
-
-def generate_wind(duration=5, sr=44100):
-    n = duration * sr
-    samples = []
-    prev = 0.0
-    for i in range(n):
-        t = i / sr
-        w = random.uniform(-1.0, 1.0)
-        s = 0.05 * w + 0.95 * prev
-        prev = s
-        # Slow amplitude modulation for gusting
-        mod = 0.5 + 0.5 * math.sin(2 * math.pi * 0.3 * t)
-        samples.append(clamp(s * mod * 0.9))
-    return samples
-
-def generate_ocean(duration=5, sr=44100):
-    n = duration * sr
-    samples = []
-    prev = 0.0
-    for i in range(n):
-        t = i / sr
-        w = random.uniform(-1.0, 1.0)
-        s = 0.1 * w + 0.9 * prev
-        prev = s
-        # Wave envelope
-        wave = 0.5 + 0.5 * math.sin(2 * math.pi * 0.15 * t)
-        samples.append(clamp(s * wave * 0.8))
-    return samples
-
-def generate_heartbeat(duration=5, sr=44100):
-    samples = [0.0] * (duration * sr)
-    bpm = 72
-    beat_interval = int(sr * 60 / bpm)
-    for beat_start in range(0, len(samples), beat_interval):
-        for i, offset in enumerate([0, int(sr * 0.15)]):
-            pos = beat_start + offset
-            for j in range(int(sr * 0.08)):
-                if pos + j < len(samples):
-                    t = j / sr
-                    env = math.exp(-t * 40)
-                    samples[pos + j] += clamp(math.sin(2 * math.pi * 80 * t) * env * 0.9)
-    return [clamp(s) for s in samples]
-
-def generate_cat(duration=4, sr=44100):
-    samples = [0.0] * (duration * sr)
-    # Two meow calls: rising then falling frequency sweep
-    for meow_start in [int(sr * 0.3), int(sr * 2.0)]:
-        meow_len = int(sr * 0.8)
-        for i in range(meow_len):
-            t = i / sr
-            # Frequency sweep 600Hz -> 1200Hz -> 800Hz
-            progress = i / meow_len
-            if progress < 0.5:
-                freq = 600 + 1200 * progress
-            else:
-                freq = 1800 - 1000 * progress
-            env = math.sin(math.pi * progress) ** 0.5
-            phase = 2 * math.pi * freq * t
-            s = (math.sin(phase) * 0.5 + math.sin(2 * phase) * 0.2 + math.sin(3 * phase) * 0.1)
-            pos = meow_start + i
-            if pos < len(samples):
-                samples[pos] += clamp(s * env * 0.7)
-    return [clamp(s) for s in samples]
-
-def generate_dog(duration=4, sr=44100):
-    samples = [0.0] * (duration * sr)
-    bark_times = [int(sr * 0.2), int(sr * 1.0), int(sr * 1.8)]
-    for bark_start in bark_times:
-        bark_len = int(sr * 0.3)
-        for i in range(bark_len):
-            t = i / sr
-            progress = i / bark_len
-            freq = 280 - 80 * progress
-            env = math.exp(-progress * 6) * (1 - math.exp(-progress * 30))
-            noise = random.uniform(-0.3, 0.3)
-            s = math.sin(2 * math.pi * freq * t) * 0.6 + noise
-            pos = bark_start + i
-            if pos < len(samples):
-                samples[pos] += clamp(s * env * 0.8)
-    return [clamp(s) for s in samples]
-
-def generate_bird(duration=4, sr=44100):
-    samples = [0.0] * (duration * sr)
-    chirp_times = [int(sr * t) for t in [0.1, 0.5, 0.9, 1.4, 1.8, 2.3, 2.7, 3.1, 3.5]]
-    for start in chirp_times:
-        chirp_len = int(sr * 0.12)
-        base_freq = random.choice([2800, 3200, 3600, 4000])
-        for i in range(chirp_len):
-            t = i / sr
-            progress = i / chirp_len
-            freq = base_freq + 800 * math.sin(math.pi * progress)
-            env = math.sin(math.pi * progress) ** 2
-            s = math.sin(2 * math.pi * freq * t)
-            pos = start + i
-            if pos < len(samples):
-                samples[pos] += clamp(s * env * 0.6)
-    return [clamp(s) for s in samples]
-
-def generate_keyboard(duration=4, sr=44100):
-    samples = [0.0] * (duration * sr)
-    # Random keystrokes at ~5 per second
-    click_interval = sr // 5
-    for start in range(0, len(samples) - sr, click_interval + random.randint(-sr//20, sr//20)):
-        click_len = int(sr * 0.015)
-        for i in range(click_len):
-            progress = i / click_len
-            env = math.exp(-progress * 80)
-            freq = random.choice([3000, 4000, 5000])
-            s = math.sin(2 * math.pi * freq * i / sr) + random.uniform(-0.2, 0.2)
-            pos = start + i
-            if pos < len(samples):
-                samples[pos] += clamp(s * env * 0.4)
-    return [clamp(s) for s in samples]
-
-def generate_clock(duration=5, sr=44100):
-    samples = [0.0] * (duration * sr)
-    tick_interval = sr  # 1 tick per second
-    for start in range(0, len(samples), tick_interval):
-        tick_len = int(sr * 0.02)
-        for i in range(tick_len):
-            progress = i / tick_len
-            env = math.exp(-progress * 100)
-            s = math.sin(2 * math.pi * 2000 * i / sr)
-            pos = start + i
-            if pos < len(samples):
-                samples[pos] += clamp(s * env * 0.7)
-    return [clamp(s) for s in samples]
-
-def generate_footsteps(duration=5, sr=44100):
-    samples = [0.0] * (duration * sr)
-    step_interval = int(sr * 0.55)
-    for start in range(0, len(samples) - sr, step_interval):
-        step_len = int(sr * 0.08)
-        for i in range(step_len):
-            progress = i / step_len
-            env = math.exp(-progress * 30)
-            noise = random.uniform(-1.0, 1.0)
-            thud = math.sin(2 * math.pi * 120 * i / sr)
-            s = thud * 0.6 + noise * 0.4
-            pos = start + i
-            if pos < len(samples):
-                samples[pos] += clamp(s * env * 0.8)
-    return [clamp(s) for s in samples]
-
-def generate_car(duration=5, sr=44100):
-    samples = []
-    for i in range(duration * sr):
-        t = i / sr
-        # Engine: rising RPM then settling
-        rpm_freq = 80 + 120 * min(t / 2.0, 1.0) * math.exp(-t * 0.3)
-        engine = (math.sin(2 * math.pi * rpm_freq * t) * 0.4 +
-                  math.sin(2 * math.pi * rpm_freq * 2 * t) * 0.2 +
-                  random.uniform(-0.1, 0.1))
-        samples.append(clamp(engine * 0.7))
-    return samples
-
-def generate_water(duration=5, sr=44100):
-    n = duration * sr
-    samples = []
-    prev = 0.0
-    for i in range(n):
-        t = i / sr
-        w = random.uniform(-1.0, 1.0)
-        s = 0.2 * w + 0.8 * prev
-        prev = s
-        ripple = 0.7 + 0.3 * math.sin(2 * math.pi * 0.8 * t)
-        samples.append(clamp(s * ripple * 0.75))
-    return samples
-
-def generate_crowd(duration=5, sr=44100):
-    n = duration * sr
-    samples = []
-    # Multiple noise sources at speech frequencies
-    prev1, prev2, prev3 = 0.0, 0.0, 0.0
-    for i in range(n):
-        t = i / sr
-        w = random.uniform(-1.0, 1.0)
-        prev1 = 0.4 * w + 0.6 * prev1
-        prev2 = 0.35 * w + 0.65 * prev2
-        prev3 = 0.3 * w + 0.7 * prev3
-        s = (prev1 * 0.4 + prev2 * 0.3 + prev3 * 0.3)
-        mod = 0.6 + 0.4 * math.sin(2 * math.pi * 0.2 * t + random.uniform(0, 0.1))
-        samples.append(clamp(s * mod * 0.7))
-    return samples
-
-def generate_noise(duration=5, sr=44100):
-    return [random.uniform(-0.4, 0.4) for _ in range(duration * sr)]
-
-SOUND_RECIPES = {
-    "rain": generate_rain,
-    "thunder": generate_thunder,
-    "storm": generate_thunder,
-    "fire": generate_fire,
-    "campfire": generate_fire,
-    "wind": generate_wind,
-    "ocean": generate_ocean,
-    "wave": generate_ocean,
-    "sea": generate_ocean,
-    "heartbeat": generate_heartbeat,
-    "heart": generate_heartbeat,
-    "pulse": generate_heartbeat,
-    "cat": generate_cat,
-    "meow": generate_cat,
-    "dog": generate_dog,
-    "bark": generate_dog,
-    "bird": generate_bird,
-    "chirp": generate_bird,
-    "keyboard": generate_keyboard,
-    "typing": generate_keyboard,
-    "clock": generate_clock,
-    "tick": generate_clock,
-    "footstep": generate_footsteps,
-    "walking": generate_footsteps,
-    "step": generate_footsteps,
-    "car": generate_car,
-    "engine": generate_car,
-    "water": generate_water,
-    "stream": generate_water,
-    "crowd": generate_crowd,
-    "people": generate_crowd,
-}
-
-def generate_local_audio(prompt: str, path: str = "generated_audio.wav") -> str:
-    prompt_lower = prompt.lower()
-    fn = None
-    for keyword, recipe in SOUND_RECIPES.items():
-        if keyword in prompt_lower:
-            fn = recipe
-            break
-    if fn is None:
-        fn = generate_noise
-    samples = fn(duration=15)
-    write_wav(path, samples)
-    return path
-
-def _llm_elaborate(prompt: str) -> str:
-    """Call Qwen via HF router to generate a precise ElevenLabs sound prompt."""
-    if not HF_TOKEN:
-        return None
-    try:
-        response = requests.post(
-            HF_API_URL,
-            headers={"Authorization": f"Bearer {HF_TOKEN}", "Content-Type": "application/json"},
-            json={
-                "model": HF_MODEL,
-                "messages": [
-                    {"role": "system", "content": SOUND_PROMPT_SYSTEM},
-                    {"role": "user", "content": f"{prompt} — make it NONSTOP, EXTREMELY LOUD, CONTINUOUS, ZERO SILENCE throughout entire duration"},
-                ],
-                "max_tokens": 80,
-                "temperature": 0.7,
-            },
-            timeout=15,
-        )
-        if response.status_code == 200:
-            return response.json()["choices"][0]["message"]["content"].strip()
-    except Exception:
-        pass
-    return None
 
 CINEMATIC_SOUNDS = {
     "cat": "aggressive domestic cat screaming and yowling in distress, sharp high-pitched meows layered continuously, raspy throat vocalisation, close-mic dry indoor acoustic, fur bristling tension in every call, relentless overlapping cries with no pause",
@@ -453,7 +126,6 @@ CINEMATIC_SOUNDS = {
     "meteor": "massive meteor impact explosion, earth-shattering shockwave blasting outward, ground shaking violently, fire and debris roaring, continuous catastrophic explosion throughout",
     "spaceship": "massive spaceship launching, enormous rocket engines blasting at full thrust, deep low-frequency ground shaking roar, steam and fire hissing, continuous overwhelming rocket noise throughout",
     "rocket": "rocket engine at full thrust, enormous deep low-frequency combustion roar, supersonic air being torn apart, ground shaking from acoustic pressure, continuous overwhelming blast throughout",
-    "waterfall": "massive waterfall thundering into pool below, enormous continuous water volume creating deep roar, mist and spray hissing, surrounding rock echo amplifying, overwhelming continuous volume",
     "jungle": "dense jungle alive with continuous sound, howler monkeys screaming, tropical birds calling, insects droning, rain on leaves, all layers simultaneously in overwhelming natural cacophony",
     "underwater": "deep underwater ambience, low-frequency water pressure hum, distant whale song resonating, bubbles rising, muffled current movement, continuous deep oceanic atmosphere throughout",
     "space": "deep space ambience, low-frequency cosmic hum, distant pulsar rhythm, electromagnetic interference crackle, vast empty resonance, continuous eerie space atmosphere throughout",
@@ -468,103 +140,218 @@ CINEMATIC_SOUNDS = {
     "highway": "busy highway with fast moving vehicles, continuous whoosh of cars passing at speed, truck airblast, engine roar, tyre noise on asphalt, relentless high-speed traffic throughout",
 }
 
-def elaborate_prompt(prompt: str) -> str:
-    prompt_lower = prompt.lower().strip()
+# Exact descriptions for the sample prompts on the landing page. These keys are
+# longer than the generic ones above, so they win the longest-match lookup.
+CINEMATIC_SOUNDS.update({
+    "thunderstorm": "violent thunderstorm directly overhead, sharp thunderclaps cracking every few seconds followed by deep rolling rumble, heavy rain pouring on every surface, gusting wind, continuous with no silence",
+    "rain on glass": "heavy rain drumming on a window pane at night, crisp individual droplets tapping the glass, water streaming down in rivulets, soft muffled storm outside, intimate close-mic interior, continuous",
+    "spaceship engine": "enormous spaceship engine humming in deep space, low pulsing reactor drone, layered detuned harmonics, subtle mechanical vibration and air vents hissing inside the hull, steady sci-fi ambience, continuous",
+    "laser": "sci-fi laser blaster firing repeatedly, bright electronic pew zaps with fast descending pitch, energy charge whine between shots, crisp futuristic weapon sounds, continuous volley",
+    "coffee shop": "busy coffee shop ambience, many people chatting softly at tables, cups and saucers clinking, espresso machine steaming and hissing, barista calling orders, warm indoor room tone, continuous",
+    "cafe": "busy cafe ambience, overlapping conversation murmur, ceramic cups clinking, espresso machine hissing, chairs scraping, warm indoor room tone, continuous",
+    "portal": "magical energy portal tearing open, swirling vortex whoosh rising in pitch, electric crackle and sparks, deep resonant hum pulsing, otherworldly shimmering tones, continuous",
+    "robot powering up": "robot powering up, electrical hum starting, rising servo whine climbing in pitch, mechanical joints clicking into place, boot-up beeps and chirps, hydraulic hiss, continuous",
+    "glass shattering": "glass window shattering, sharp crystal impact, shards cascading and bouncing on a hard floor, tinkling fragments settling, repeated breaks, close-mic, high fidelity",
+})
 
-    # Check cinematic library — longest key match first to avoid "male" matching inside "female"
-    for key, description in sorted(CINEMATIC_SOUNDS.items(), key=lambda x: -len(x[0])):
-        if key in prompt_lower:
-            return description
+# Short, specific search terms for Freesound. Its text search matches every word,
+# so a long description returns nothing — it needs a few precise keywords.
+FREESOUND_QUERIES = {
+    "thunderstorm": "thunderstorm rain thunder",
+    "thunder": "thunder storm",
+    "rain on glass": "rain window glass",
+    "ocean": "ocean waves",
+    "wave": "ocean waves",
+    "campfire": "campfire crackling",
+    "fire": "fire crackling",
+    "cat": "cat meow",
+    "kitten": "kitten meow",
+    "dog": "dog barking",
+    "spaceship engine": "spaceship engine hum",
+    "spaceship": "spaceship engine",
+    "wolf": "wolf howl",
+    "laser": "laser gun sci-fi",
+    "traffic": "city traffic",
+    "city": "city traffic ambience",
+    "coffee shop": "coffee shop ambience",
+    "cafe": "cafe ambience",
+    "portal": "portal magic energy",
+    "keyboard": "keyboard typing",
+    "waterfall": "waterfall",
+    "robot powering up": "robot power up",
+    "robot": "robot servo",
+    "heartbeat": "heartbeat",
+    "glass shattering": "glass shatter",
+    "glass": "glass break",
+}
 
-    # LLM for unknown sounds
+STOPWORDS = {
+    "a", "an", "the", "of", "in", "on", "at", "to", "and", "with", "for", "from", "by",
+    "sound", "sounds", "noise", "audio", "effect", "effects", "some", "very", "really",
+    "please", "make", "me", "like", "is", "are", "that", "this",
+}
+
+
+def match_cinematic(prompt: str):
+    """Longest library key that appears in the prompt as whole words, e.g. 'female'
+    beats 'male' and 'cat' does not fire on 'location'."""
+    text = prompt.lower()
+    for key in sorted(CINEMATIC_SOUNDS, key=len, reverse=True):
+        if re.search(r"\b" + re.escape(key) + r"s?\b", text):
+            return key
+    return None
+
+
+def freesound_query(prompt: str, key: str | None) -> list[str]:
+    """Search queries to try in order: curated query, then the prompt's keywords."""
+    queries = []
+    if key:
+        queries.append(FREESOUND_QUERIES.get(key, key))
+    words = [w for w in re.findall(r"[a-z]+", prompt.lower()) if w not in STOPWORDS]
+    if words:
+        queries.append(" ".join(words[:4]))
+        if len(words) > 2:
+            queries.append(" ".join(words[:2]))
+    return list(dict.fromkeys(q for q in queries if q))
+
+
+def _llm_elaborate(prompt: str) -> str | None:
+    """Ask Qwen (via the Hugging Face router) for an ElevenLabs sound prompt."""
+    if not HF_TOKEN:
+        return None
+    try:
+        response = requests.post(
+            HF_API_URL,
+            headers={"Authorization": f"Bearer {HF_TOKEN}", "Content-Type": "application/json"},
+            json={
+                "model": HF_MODEL,
+                "messages": [
+                    {"role": "system", "content": SOUND_PROMPT_SYSTEM},
+                    {"role": "user", "content": prompt},
+                ],
+                "max_tokens": 100,
+                "temperature": 0.7,
+            },
+            timeout=(5, 12),
+        )
+        if response.status_code == 200:
+            text = response.json()["choices"][0]["message"]["content"].strip().strip('"')
+            return text or None
+        log.warning("[LLM] HTTP %s: %s", response.status_code, response.text[:200])
+    except Exception as e:
+        log.warning("[LLM] %s", e)
+    return None
+
+
+def elaborate_prompt(prompt: str) -> tuple[str, str | None]:
+    """Return (description, library key or None)."""
+    key = match_cinematic(prompt)
+    if key:
+        return CINEMATIC_SOUNDS[key], key
     result = _llm_elaborate(prompt)
     if result:
-        return result
+        return result, None
+    return f"{prompt}, realistic high-fidelity sound effect, close-mic, clear and continuous throughout", None
 
-    return f"nonstop {prompt} sound blasting continuously, overlapping loud {prompt} sounds, extreme close-mic, extreme volume, zero silence, zero gaps throughout entire duration"
 
 def search_audio(elaborated_prompt: str) -> str:
     """
     Searches the ChromaDB vector database for a semantically similar expert sound description.
     Returns the matched description if cosine distance is below threshold, else 'NO_MATCH'.
-    On match, the matched expert description is used for generation instead of the raw elaboration.
     """
     try:
         match = vector_search(elaborated_prompt)
         if match:
             description, label, distance = match
-            print(f"[ChromaDB] Match: '{label}' (distance={distance:.3f})")
+            log.info("[ChromaDB] Match: '%s' (distance=%.3f)", label, distance)
             return description
     except Exception as e:
-        print(f"[ChromaDB] Search error: {e}")
+        log.warning("[ChromaDB] Search error: %s", e)
     return "NO_MATCH"
 
-def freesound_search(prompt: str) -> str | None:
-    """Search Freesound for a matching cinematic sound effect and download it."""
+
+def freesound_search(queries: list[str], out_base: str) -> str | None:
+    """Find a real recorded sound effect on Freesound and download its HQ preview."""
     if not FREESOUND_KEY:
         return None
-    try:
-        response = requests.get(
-            "https://freesound.org/apiv2/search/text/",
-            params={
-                "query": prompt,
-                "token": FREESOUND_KEY,
-                "fields": "name,previews,duration",
-                "filter": "duration:[12 TO 60]",
-                "sort": "rating_desc",
-                "page_size": 1,
-            },
-            timeout=10,
-        )
-        if response.status_code != 200:
-            return None
-        results = response.json().get("results", [])
-        if not results:
-            return None
-        preview_url = results[0]["previews"]["preview-hq-mp3"]
-        print(f"[Freesound] Match: {results[0]['name']}")
-        audio = requests.get(preview_url, timeout=15)
-        if audio.status_code == 200:
-            path = "generated_audio.mp3"
-            with open(path, "wb") as f:
-                f.write(audio.content)
-            return path
-    except Exception as e:
-        print(f"[Freesound] Error: {e}")
+    deadline = time.monotonic() + 25  # never let Freesound eat the whole request
+    for query in queries:
+        if time.monotonic() > deadline:
+            break
+        try:
+            response = requests.get(
+                "https://freesound.org/apiv2/search/text/",
+                params={
+                    "query": query,
+                    "token": FREESOUND_KEY,
+                    "fields": "id,name,previews,duration",
+                    "filter": "duration:[6 TO 90]",
+                    "sort": "score",
+                    "page_size": 5,
+                },
+                timeout=(5, 10),
+            )
+            if response.status_code != 200:
+                log.warning("[Freesound] HTTP %s: %s", response.status_code, response.text[:200])
+                if response.status_code in (401, 403, 429):
+                    return None  # bad key or rate limited — other queries won't help
+                continue
+            for result in response.json().get("results", []):
+                if time.monotonic() > deadline:
+                    break
+                url = (result.get("previews") or {}).get("preview-hq-mp3")
+                if not url:
+                    continue
+                audio = requests.get(url, timeout=(5, 20))
+                if audio.status_code == 200 and len(audio.content) > 1000:
+                    path = out_base + ".mp3"
+                    with open(path, "wb") as f:
+                        f.write(audio.content)
+                    log.info("[Freesound] '%s' -> %s", query, result.get("name"))
+                    return path
+        except Exception as e:
+            log.warning("[Freesound] %s", e)
     return None
 
 
-def generate_audio(elaborated_prompt: str) -> str:
+def elevenlabs_generate(description: str, out_base: str) -> str | None:
+    """Generate a sound effect with ElevenLabs. Returns an mp3 path or None."""
+    if not ELEVENLABS_KEY:
+        return None
+    try:
+        response = requests.post(
+            "https://api.elevenlabs.io/v1/sound-generation",
+            headers={"xi-api-key": ELEVENLABS_KEY, "Content-Type": "application/json"},
+            json={"text": description[:450], "duration_seconds": 15.0, "prompt_influence": 0.6},
+            timeout=(5, 60),
+        )
+        if response.status_code == 200 and response.content:
+            path = out_base + ".mp3"
+            with open(path, "wb") as f:
+                f.write(response.content)
+            return path
+        log.warning("[ElevenLabs] HTTP %s: %s", response.status_code, response.text[:200])
+    except Exception as e:
+        log.warning("[ElevenLabs] %s", e)
+    return None
+
+
+def generate_audio(prompt: str, description: str, key: str | None, out_base: str) -> tuple[str, str]:
     """
-    Three-tier audio pipeline:
-    1. Freesound — real professional cinematic sound effects
+    Three-tier audio pipeline. Returns (file path, engine name).
+    1. Freesound — real recorded sound effects
     2. ElevenLabs — AI sound generation
-    3. Procedural fallback — pure Python synthesis
+    3. Procedural synthesis — always works, no network needed
     """
-    output_path = "generated_audio.wav"
+    path = freesound_search(freesound_query(prompt, key), out_base)
+    if path:
+        return path, "freesound"
 
-    # Tier 1 — Freesound professional sound effects
-    freesound_result = freesound_search(elaborated_prompt)
-    if freesound_result:
-        return freesound_result
+    path = elevenlabs_generate(description, out_base)
+    if path:
+        return path, "elevenlabs"
 
-    if ELEVENLABS_KEY:
-        try:
-            response = requests.post(
-                "https://api.elevenlabs.io/v1/sound-generation",
-                headers={
-                    "xi-api-key": ELEVENLABS_KEY,
-                    "Content-Type": "application/json",
-                },
-                json={"text": elaborated_prompt, "duration_seconds": 15.0, "prompt_influence": 0.9},
-                timeout=30,
-            )
-            if response.status_code == 200:
-                with open(output_path, "wb") as f:
-                    f.write(response.content)
-                return output_path
-        except Exception:
-            pass
-
-    generate_local_audio(elaborated_prompt, output_path)
-    return output_path
+    # Route the synth on what the user typed (plus the library key), not the long
+    # description, which mentions many unrelated sounds ("rain", "wind", ...).
+    path = synthesize(f"{prompt} {key or ''}", out_base + ".wav")
+    return path, "procedural"

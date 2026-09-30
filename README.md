@@ -224,14 +224,20 @@ git clone https://github.com/yshemashree/Audify.ai
 cd Audify.ai
 pip install -r requirements.txt
 
-# Add keys — both optional, app works without them via fallback
-echo "ELEVENLABS_API_KEY=your_key" > .env
+# Add keys — all optional, the app works without them via the offline synth
+echo "FREESOUND_API_KEY=your_key" > .env
+echo "ELEVENLABS_API_KEY=your_key" >> .env
 echo "HUGGINGFACE_API_TOKEN=your_token" >> .env
 
-uvicorn main:app --reload --port 8000
+uvicorn main:app --port 8000
 ```
 
-Open `http://localhost:8000`.
+Open `http://localhost:8000` — the backend serves the frontend. If you open
+`frontend/index.html` directly or through a dev server (e.g. VS Code Live Server),
+the page talks to `http://localhost:8000` automatically; point it elsewhere with
+`?api=https://your-backend`. `GET /health` shows which engines have keys.
+
+On Railway the `Procfile` starts the server on `$PORT`.
 
 ---
 
@@ -239,18 +245,21 @@ Open `http://localhost:8000`.
 
 | Variable | Required | Effect |
 |---|---|---|
-| `ELEVENLABS_API_KEY` | No | Enables AI sound generation. Without it, procedural synthesis runs. |
-| `HUGGINGFACE_API_TOKEN` | No | Enables LLM prompt expansion via Qwen 72B. Without it, keyword expansion runs. |
+| `FREESOUND_API_KEY` | No | Tier 1: real recorded sound effects from Freesound. |
+| `ELEVENLABS_API_KEY` | No | Tier 2: AI sound generation when Freesound has no match. |
+| `HUGGINGFACE_API_TOKEN` | No | LLM prompt expansion via Qwen 72B for sounds not in the built-in library. |
 
-The app is fully functional with no API keys — just less accurate sound descriptions and procedural audio.
+Every tier fails over to the next, and the last one (procedural synthesis) needs
+no network, so a request always returns playable audio.
 
 ---
 
 ## Procedural fallback sounds
 
-When no ElevenLabs key is present, Audify synthesises audio locally in pure Python:
+When no API is available, Audify synthesises audio locally with numpy (`synth.py`).
+Every sample prompt on the landing page has its own recipe:
 
-`rain` · `thunder` · `fire` · `wind` · `ocean` · `heartbeat` · `cat` · `dog` · `bird` · `keyboard` · `clock` · `footsteps` · `car` · `water` · `crowd` · `noise`
+`thunderstorm` · `rain` · `rain on glass` · `ocean` · `campfire` · `wind` · `waterfall` · `water` · `cat` · `dog` · `wolf` · `bird` · `heartbeat` · `keyboard` · `clock` · `footsteps` · `city traffic` · `crowd` · `coffee shop` · `spaceship` · `laser` · `portal` · `robot power-up` · `glass shattering`
 
 ---
 
