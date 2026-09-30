@@ -1,23 +1,26 @@
 from tools import elaborate_prompt, search_audio, generate_audio
 
-def run_agent(prompt: str) -> dict:
-    description = elaborate_prompt(prompt)
 
-    # ChromaDB vector search: returns matched expert description or "NO_MATCH"
-    matched = search_audio(description)
+def run_agent(prompt: str, out_base: str) -> dict:
+    """Run the pipeline for one prompt, writing audio to `out_base` + extension."""
+    description, key = elaborate_prompt(prompt)
 
-    if matched == "NO_MATCH":
-        source = "generated"
-        final_description = description
+    # Library hits are already expert descriptions; only consult the vector DB
+    # for free-form prompts, to upgrade them to a curated description.
+    source = "generated"
+    if key is None:
+        matched = search_audio(description)
+        if matched != "NO_MATCH":
+            source = "retrieved"
+            description = matched
     else:
-        # Use the matched expert description for higher-quality generation
         source = "retrieved"
-        final_description = matched
 
-    audio = generate_audio(final_description)
+    path, engine = generate_audio(prompt, description, key, out_base)
 
     return {
-        "description": final_description,
+        "description": description,
         "source": source,
-        "audio": audio,
+        "engine": engine,
+        "path": path,
     }

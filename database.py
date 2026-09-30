@@ -1,5 +1,7 @@
-import chromadb
-from chromadb.utils import embedding_functions
+import logging
+import threading
+
+log = logging.getLogger("audify")
 
 SOUND_DESCRIPTIONS = [
     {"id": "rain_01", "description": "continuous heavy rain on hard surface, crisp high-density impact, loud sustained rainfall, close-mic outdoor, high-fidelity, no muffling", "label": "rain"},
@@ -65,30 +67,47 @@ SOUND_DESCRIPTIONS = [
     {"id": "city_01", "description": "continuous loud city street noise, crisp car horns and traffic, overlapping urban sounds, close-mic outdoor, high-fidelity", "label": "city"},
 ]
 
-_chroma_client = None
 _collection = None
+_failed = False
+_lock = threading.Lock()
+
 
 def _get_collection():
-    global _chroma_client, _collection
-    if _collection is not None:
+    """Build the in-memory collection once. Returns None if ChromaDB is unavailable
+    (not installed, or the embedding model can't be downloaded) — search is optional."""
+    global _collection, _failed
+    if _collection is not None or _failed:
         return _collection
+    with _lock:
+        if _collection is not None or _failed:
+            return _collection
+        try:
+            import chromadb
+            from chromadb.utils import embedding_functions
 
-    _chroma_client = chromadb.Client()
-    ef = embedding_functions.DefaultEmbeddingFunction()
-    _collection = _chroma_client.get_or_create_collection(
-        name="sounds",
-        embedding_function=ef,
-        metadata={"hnsw:space": "cosine"},
-    )
-
-    if _collection.count() == 0:
-        _collection.add(
-            ids=[s["id"] for s in SOUND_DESCRIPTIONS],
-            documents=[s["description"] for s in SOUND_DESCRIPTIONS],
-            metadatas=[{"label": s["label"]} for s in SOUND_DESCRIPTIONS],
-        )
-
+            client = chromadb.Client()
+            col = client.get_or_create_collection(
+                name="sounds",
+                embedding_function=embedding_functions.DefaultEmbeddingFunction(),
+                metadata={"hnsw:space": "cosine"},
+            )
+            if col.count() == 0:
+                col.add(
+                    ids=[s["id"] for s in SOUND_DESCRIPTIONS],
+                    documents=[s["description"] for s in SOUND_DESCRIPTIONS],
+                    metadatas=[{"label": s["label"]} for s in SOUND_DESCRIPTIONS],
+                )
+            _collection = col
+            log.info("[ChromaDB] Ready with %d descriptions", col.count())
+        except Exception as e:
+            _failed = True
+            log.warning("[ChromaDB] Disabled: %s", e)
     return _collection
+
+
+def warm_up():
+    """Load the embedding model ahead of the first request."""
+    _get_collection()
 
 
 def vector_search(query: str, threshold: float = 0.15):
@@ -97,7 +116,10 @@ def vector_search(query: str, threshold: float = 0.15):
     Returns (description, label, distance) if distance < threshold, else None.
     """
     col = _get_collection()
-    results = col.query(query_texts=[query], n_results=1)
+    if col is None:
+        return None
+    with _lock:
+        results = col.query(query_texts=[query], n_results=1)
     if not results["distances"] or not results["distances"][0]:
         return None
     distance = results["distances"][0][0]

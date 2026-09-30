@@ -224,14 +224,20 @@ git clone https://github.com/yshemashree/Audify.ai
 cd Audify.ai
 pip install -r requirements.txt
 
-# Add keys — both optional, app works without them via fallback
-echo "ELEVENLABS_API_KEY=your_key" > .env
+# Add keys — all optional, the app works without them via the offline synth
+echo "FREESOUND_API_KEY=your_key" > .env
+echo "ELEVENLABS_API_KEY=your_key" >> .env
 echo "HUGGINGFACE_API_TOKEN=your_token" >> .env
 
-uvicorn main:app --reload --port 8000
+uvicorn main:app --port 8000
 ```
 
-Open `http://localhost:8000`.
+Open `http://localhost:8000` — the backend serves the frontend. If you open
+`frontend/index.html` directly or through a dev server (e.g. VS Code Live Server),
+the page talks to `http://localhost:8000` automatically; point it elsewhere with
+`?api=https://your-backend`. `GET /health` shows which engines have keys.
+
+On Railway the `Procfile` starts the server on `$PORT`.
 
 ---
 
@@ -239,18 +245,60 @@ Open `http://localhost:8000`.
 
 | Variable | Required | Effect |
 |---|---|---|
-| `ELEVENLABS_API_KEY` | No | Enables AI sound generation. Without it, procedural synthesis runs. |
-| `HUGGINGFACE_API_TOKEN` | No | Enables LLM prompt expansion via Qwen 72B. Without it, keyword expansion runs. |
+| `FREESOUND_API_KEY` | No | Real recorded sound effects from Freesound. |
+| `ELEVENLABS_API_KEY` | No | AI sound generation with ElevenLabs. |
+| `HUGGINGFACE_API_TOKEN` | No | LLM prompt expansion via Qwen 72B for sounds not in the built-in library. |
 
-The app is fully functional with no API keys — just less accurate sound descriptions and procedural audio.
+Freesound and ElevenLabs are called in parallel and **layered into one track**:
+the real recording is the body, the ElevenLabs take sits on top (`mixer.py`).
+If only one of them answers it is used alone; if neither does, the offline synth
+takes over, so a request always returns playable audio.
+
+Every result then goes through a **cinematic exaggeration chain**: +7 dB low-end,
+presence boost, parallel compression, saturation, stereo widening and a limiter.
+Typical result: 8–10 dB louder with far bigger, punchier impact.
 
 ---
 
+## Built-in real recordings (offline)
+
+`sounds/` ships real recordings for 37 categories, including 7 hand-scored glass shatters, dogs, cats, farm animals, rain, sea, fire, thunder, wind, water, birds, keyboard and traffic. They come from the ESC-50 dataset (originally Freesound). `library.py` builds sounds from them with no network or API keys:
+
+- **glass shattering**: real shatters played as separate hits, each layered with the ElevenLabs take when available
+- **glass cracking**: spidering cracks assembled from micro-fragments cut out of the real shatters; **glass cracks and shatters** escalates into a real break
+- **animals**: real calls sequenced with natural pauses; Freesound takes are mixed in when online
+- **scenes**: recorded beds chained with crossfades, with real events (horns, drips, birds) sprinkled over them
+
+Priority: built-in recordings, then Freesound/ElevenLabs, then the synth. Subjects the library has no recordings of (wolf, lion, horse, elephant, sci-fi) fall through to the online sources or the synth.
+
+**Offline sample chips**: `frontend/samples/` holds a pre-rendered MP3 for every sample chip. If the server can't be reached (no internet, server down, or `index.html` opened from disk), clicking a chip still plays its sound.
+
+Rebuild after changing things:
+
+```bash
+python scripts/build_sound_library.py    # re-download and re-score ESC-50 takes
+python scripts/build_offline_samples.py  # re-render the chip samples
+```
+
+> **License:** ESC-50 is CC BY-NC 3.0 (non-commercial; the ESC-10 subset is CC BY). See `sounds/CREDITS.md` for per-clip attribution. Before commercial use, replace `sounds/` with recordings you have commercial rights to (for example CC0 sounds from Freesound).
+
 ## Procedural fallback sounds
 
-When no ElevenLabs key is present, Audify synthesises audio locally in pure Python:
+When no API is available, Audify synthesises audio locally with numpy.
 
-`rain` · `thunder` · `fire` · `wind` · `ocean` · `heartbeat` · `cat` · `dog` · `bird` · `keyboard` · `clock` · `footsteps` · `car` · `water` · `crowd` · `noise`
+**Glass (VFX grade, `synth.py`)**: `glass shattering` (crack transient, impact thump, shard burst, flying fragments, bouncing debris, tinkle tail, in stereo), `glass cracking` / `ice cracking` (spidering micro-fractures and creaks), `glass cracks and shatters` (escalating cracks ending in a break).
+
+**Animals (`animals.py`)**: a source-filter voice engine (pitch contour, moving formants, breath and growl roughness) with calls for `cat` · `kitten` · `dog` · `puppy` · `growl` · `wolf` · `lion` · `tiger` · `bear` · `cow` · `horse` · `sheep` · `goat` · `pig` · `duck` · `rooster` · `chicken` · `owl` · `crow` · `eagle` · `elephant` · `monkey` · `frog` · `donkey` · `crickets` · `bees` · `snake` · `rattlesnake`.
+
+**Scenes**: `thunderstorm` · `rain` · `rain on glass` · `ocean` · `campfire` · `wind` · `waterfall` · `water` · `bird` · `heartbeat` · `keyboard` · `clock` · `footsteps` · `city traffic` · `crowd` · `coffee shop` · `spaceship` · `laser` · `portal` · `robot power-up`
+
+## How each kind of sound is built
+
+| Kind | Examples | Freesound | Combined as | Mastering |
+|---|---|---|---|---|
+| Impact | glass, smash, crack | 3 takes, 0.4–10 s | each real take layered with the ElevenLabs take, attacks aligned to the sample, then laid out as separate hits | razor transients, sub boom under each hit, +6 dB air, wide stereo, room tail |
+| Vocal | animals | 3 takes, 0.5–20 s | real and AI calls alternated with natural pauses | chesty low end, forward presence, grit, small room |
+| Ambience | rain, fire, city | 1 take, 6–90 s | recording and AI take layered into one bed | heavy low end, squashed and saturated, wide |
 
 ---
 
