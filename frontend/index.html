@@ -777,9 +777,10 @@ const API_BASE = (() => {
 })();
 
 const ENGINE_LABEL = {
-  freesound: 'Real recording from Freesound',
-  elevenlabs: 'Generated with ElevenLabs',
-  procedural: 'Synthesised offline',
+  'freesound+elevenlabs': 'Freesound recording + ElevenLabs layered, cinematic master',
+  freesound: 'Real recording from Freesound, cinematic master',
+  elevenlabs: 'Generated with ElevenLabs, cinematic master',
+  procedural: 'Synthesised offline, cinematic master',
 };
 
 async function checkServer() {

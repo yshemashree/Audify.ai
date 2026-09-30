@@ -5,7 +5,9 @@ import logging
 import requests
 from dotenv import load_dotenv
 from database import vector_search
-from synth import synthesize
+from concurrent.futures import ThreadPoolExecutor
+from synth import render
+import mixer
 
 load_dotenv()
 log = logging.getLogger("audify")
@@ -270,8 +272,8 @@ def search_audio(elaborated_prompt: str) -> str:
     return "NO_MATCH"
 
 
-def freesound_search(queries: list[str], out_base: str) -> str | None:
-    """Find a real recorded sound effect on Freesound and download its HQ preview."""
+def freesound_fetch(queries: list[str]) -> bytes | None:
+    """Find a real recorded sound effect on Freesound; return its HQ preview mp3."""
     if not FREESOUND_KEY:
         return None
     deadline = time.monotonic() + 25  # never let Freesound eat the whole request
@@ -304,54 +306,74 @@ def freesound_search(queries: list[str], out_base: str) -> str | None:
                     continue
                 audio = requests.get(url, timeout=(5, 20))
                 if audio.status_code == 200 and len(audio.content) > 1000:
-                    path = out_base + ".mp3"
-                    with open(path, "wb") as f:
-                        f.write(audio.content)
                     log.info("[Freesound] '%s' -> %s", query, result.get("name"))
-                    return path
+                    return audio.content
         except Exception as e:
             log.warning("[Freesound] %s", e)
     return None
 
 
-def elevenlabs_generate(description: str, out_base: str) -> str | None:
-    """Generate a sound effect with ElevenLabs. Returns an mp3 path or None."""
+EXAGGERATE_PREFIX = "Exaggerated, over-the-top Hollywood cinematic sound effect, huge and larger than life, extremely loud and punchy: "
+
+
+def elevenlabs_fetch(description: str) -> bytes | None:
+    """Generate a sound effect with ElevenLabs; return mp3 bytes."""
     if not ELEVENLABS_KEY:
         return None
     try:
         response = requests.post(
             "https://api.elevenlabs.io/v1/sound-generation",
             headers={"xi-api-key": ELEVENLABS_KEY, "Content-Type": "application/json"},
-            json={"text": description[:450], "duration_seconds": 15.0, "prompt_influence": 0.6},
+            json={
+                "text": (EXAGGERATE_PREFIX + description)[:450],
+                "duration_seconds": 15.0,
+                "prompt_influence": 0.75,
+            },
             timeout=(5, 60),
         )
         if response.status_code == 200 and response.content:
-            path = out_base + ".mp3"
-            with open(path, "wb") as f:
-                f.write(response.content)
-            return path
+            return response.content
         log.warning("[ElevenLabs] HTTP %s: %s", response.status_code, response.text[:200])
     except Exception as e:
         log.warning("[ElevenLabs] %s", e)
     return None
 
 
+def _save_raw(data: bytes, out_base: str) -> str:
+    path = out_base + ".mp3"
+    with open(path, "wb") as f:
+        f.write(data)
+    return path
+
+
 def generate_audio(prompt: str, description: str, key: str | None, out_base: str) -> tuple[str, str]:
     """
-    Three-tier audio pipeline. Returns (file path, engine name).
-    1. Freesound — real recorded sound effects
-    2. ElevenLabs — AI sound generation
-    3. Procedural synthesis — always works, no network needed
+    Returns (file path, engine name).
+    Freesound (real recording) and ElevenLabs (AI take) are fetched in parallel and
+    layered into one track. If only one answers it is used alone; if neither does,
+    the offline synth takes over. Every result goes through the exaggeration chain.
     """
-    path = freesound_search(freesound_query(prompt, key), out_base)
-    if path:
-        return path, "freesound"
+    with ThreadPoolExecutor(max_workers=2) as pool:
+        fs_job = pool.submit(freesound_fetch, freesound_query(prompt, key))
+        el_job = pool.submit(elevenlabs_fetch, description)
+        fs_bytes, el_bytes = fs_job.result(), el_job.result()
 
-    path = elevenlabs_generate(description, out_base)
-    if path:
-        return path, "elevenlabs"
+    fs = mixer.decode(fs_bytes) if fs_bytes else None
+    el = mixer.decode(el_bytes) if el_bytes else None
+
+    if fs is not None and el is not None:
+        return mixer.write_wav(out_base + ".wav", mixer.exaggerate(mixer.layer(fs, el))), "freesound+elevenlabs"
+    if fs is not None:
+        return mixer.write_wav(out_base + ".wav", mixer.exaggerate(mixer.clamp_length(fs))), "freesound"
+    if el is not None:
+        return mixer.write_wav(out_base + ".wav", mixer.exaggerate(mixer.clamp_length(el))), "elevenlabs"
+
+    # Audio arrived but couldn't be decoded — serve it untouched rather than fail.
+    for data, engine in ((fs_bytes, "freesound"), (el_bytes, "elevenlabs")):
+        if data:
+            return _save_raw(data, out_base), engine
 
     # Route the synth on what the user typed (plus the library key), not the long
     # description, which mentions many unrelated sounds ("rain", "wind", ...).
-    path = synthesize(f"{prompt} {key or ''}", out_base + ".wav")
-    return path, "procedural"
+    x = render(f"{prompt} {key or ''}")
+    return mixer.write_wav(out_base + ".wav", mixer.exaggerate(x)), "procedural"

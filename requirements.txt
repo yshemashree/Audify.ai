@@ -5,3 +5,4 @@ requests
 numpy
 python-multipart
 chromadb
+miniaudio

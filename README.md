@@ -245,12 +245,18 @@ On Railway the `Procfile` starts the server on `$PORT`.
 
 | Variable | Required | Effect |
 |---|---|---|
-| `FREESOUND_API_KEY` | No | Tier 1: real recorded sound effects from Freesound. |
-| `ELEVENLABS_API_KEY` | No | Tier 2: AI sound generation when Freesound has no match. |
+| `FREESOUND_API_KEY` | No | Real recorded sound effects from Freesound. |
+| `ELEVENLABS_API_KEY` | No | AI sound generation with ElevenLabs. |
 | `HUGGINGFACE_API_TOKEN` | No | LLM prompt expansion via Qwen 72B for sounds not in the built-in library. |
 
-Every tier fails over to the next, and the last one (procedural synthesis) needs
-no network, so a request always returns playable audio.
+Freesound and ElevenLabs are called in parallel and **layered into one track**:
+the real recording is the body, the ElevenLabs take sits on top (`mixer.py`).
+If only one of them answers it is used alone; if neither does, the offline synth
+takes over, so a request always returns playable audio.
+
+Every result then goes through a **cinematic exaggeration chain**: +7 dB low-end,
+presence boost, parallel compression, saturation, stereo widening and a limiter.
+Typical result: 8–10 dB louder with far bigger, punchier impact.
 
 ---
 

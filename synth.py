@@ -409,8 +409,8 @@ def match_recipe(prompt: str):
     return None, ambient
 
 
-def synthesize(prompt: str, path: str, duration: int = DURATION, seed: int | None = None) -> str:
-    """Render the best-matching recipe for `prompt` to a 16-bit mono WAV at `path`."""
+def render(prompt: str, duration: int = DURATION, seed: int | None = None) -> np.ndarray:
+    """Render the best-matching recipe for `prompt` as a float mono signal in [-1, 1]."""
     rng = np.random.default_rng(seed)
     _, fn = match_recipe(prompt)
     n = duration * SR
@@ -419,7 +419,12 @@ def synthesize(prompt: str, path: str, duration: int = DURATION, seed: int | Non
         x = np.pad(x, (0, n - len(x)))
     x -= x.mean()
     x = np.tanh(1.2 * x / (np.abs(x).max() + 1e-9))  # gentle limiter
-    x = _fade(x / (np.abs(x).max() + 1e-9) * 0.89)
+    return _fade(x / (np.abs(x).max() + 1e-9) * 0.89)
+
+
+def synthesize(prompt: str, path: str, duration: int = DURATION, seed: int | None = None) -> str:
+    """Render `prompt` to a 16-bit mono WAV at `path`."""
+    x = render(prompt, duration, seed)
     pcm = (x * 32767).astype("<i2")
     with wave.open(path, "wb") as w:
         w.setnchannels(1)
