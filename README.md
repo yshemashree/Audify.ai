@@ -2,7 +2,7 @@
 
 # Audify.ai
 
-**Type a word. Hear it.**
+**Type a word. Hear it play.**
 
 An agentic AI pipeline that takes any text description and synthesises it into audio — powered by a live LLM, a ChromaDB vector database, ElevenLabs sound generation, and a Three.js frontend.
 
