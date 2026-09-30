@@ -262,10 +262,21 @@ Typical result: 8–10 dB louder with far bigger, punchier impact.
 
 ## Procedural fallback sounds
 
-When no API is available, Audify synthesises audio locally with numpy (`synth.py`).
-Every sample prompt on the landing page has its own recipe:
+When no API is available, Audify synthesises audio locally with numpy.
 
-`thunderstorm` · `rain` · `rain on glass` · `ocean` · `campfire` · `wind` · `waterfall` · `water` · `cat` · `dog` · `wolf` · `bird` · `heartbeat` · `keyboard` · `clock` · `footsteps` · `city traffic` · `crowd` · `coffee shop` · `spaceship` · `laser` · `portal` · `robot power-up` · `glass shattering`
+**Glass (VFX grade, `synth.py`)**: `glass shattering` (crack transient, impact thump, shard burst, flying fragments, bouncing debris, tinkle tail, in stereo), `glass cracking` / `ice cracking` (spidering micro-fractures and creaks), `glass cracks and shatters` (escalating cracks ending in a break).
+
+**Animals (`animals.py`)**: a source-filter voice engine (pitch contour, moving formants, breath and growl roughness) with calls for `cat` · `kitten` · `dog` · `puppy` · `growl` · `wolf` · `lion` · `tiger` · `bear` · `cow` · `horse` · `sheep` · `goat` · `pig` · `duck` · `rooster` · `chicken` · `owl` · `crow` · `eagle` · `elephant` · `monkey` · `frog` · `donkey` · `crickets` · `bees` · `snake` · `rattlesnake`.
+
+**Scenes**: `thunderstorm` · `rain` · `rain on glass` · `ocean` · `campfire` · `wind` · `waterfall` · `water` · `bird` · `heartbeat` · `keyboard` · `clock` · `footsteps` · `city traffic` · `crowd` · `coffee shop` · `spaceship` · `laser` · `portal` · `robot power-up`
+
+## How each kind of sound is built
+
+| Kind | Examples | Freesound | Combined as | Mastering |
+|---|---|---|---|---|
+| Impact | glass, smash, crack | 3 takes, 0.4–10 s | each real take layered with the ElevenLabs take, attacks aligned to the sample, then laid out as separate hits | razor transients, sub boom under each hit, +6 dB air, wide stereo, room tail |
+| Vocal | animals | 3 takes, 0.5–20 s | real and AI calls alternated with natural pauses | chesty low end, forward presence, grit, small room |
+| Ambience | rain, fire, city | 1 take, 6–90 s | recording and AI take layered into one bed | heavy low end, squashed and saturated, wide |
 
 ---
 

@@ -1,5 +1,6 @@
 import os
 import re
+import math
 import time
 import logging
 import requests
@@ -153,7 +154,16 @@ CINEMATIC_SOUNDS.update({
     "cafe": "busy cafe ambience, overlapping conversation murmur, ceramic cups clinking, espresso machine hissing, chairs scraping, warm indoor room tone, continuous",
     "portal": "magical energy portal tearing open, swirling vortex whoosh rising in pitch, electric crackle and sparks, deep resonant hum pulsing, otherworldly shimmering tones, continuous",
     "robot powering up": "robot powering up, electrical hum starting, rising servo whine climbing in pitch, mechanical joints clicking into place, boot-up beeps and chirps, hydraulic hiss, continuous",
-    "glass shattering": "glass window shattering, sharp crystal impact, shards cascading and bouncing on a hard floor, tinkling fragments settling, repeated breaks, close-mic, high fidelity",
+    "glass shattering": "single large glass window shattering, razor-sharp crack transient, heavy impact with low thump, explosive burst of crystal shards flying outward, fragments raining and bouncing on a hard floor, bright tinkling tail, VFX-grade hyper-real close-mic, crisp and clean",
+    "glass": "thick glass pane smashing, razor-sharp crack transient, heavy impact thump, explosive burst of crystal shards, fragments raining and bouncing on hard floor, bright tinkling tail, VFX-grade hyper-real close-mic",
+    "shatter": "glass shattering violently, razor-sharp crack, explosive burst of crystal shards, fragments raining and bouncing on hard floor, bright tinkling tail, VFX-grade hyper-real close-mic",
+    "glass cracking": "glass under stress cracking, sharp spidering micro-fractures ticking outward, tense creaks, bright crystalline snaps growing louder, isolated, VFX-grade hyper-real close-mic, no music",
+    "crackling glass": "glass under stress crackling, sharp spidering micro-fractures ticking outward, tense creaks, bright crystalline snaps, isolated, VFX-grade hyper-real close-mic, no music",
+    "cracking glass": "glass under stress cracking, sharp spidering micro-fractures ticking outward, tense creaks, bright crystalline snaps growing louder, isolated, VFX-grade hyper-real close-mic, no music",
+    "glass crackling": "glass under stress crackling, sharp spidering micro-fractures ticking outward, tense creaks, bright crystalline snaps, isolated, VFX-grade hyper-real close-mic, no music",
+    "ice cracking": "thick ice sheet cracking, sharp splitting snaps with ringing pings, deep creaking groans, fractures spreading across the surface, VFX-grade hyper-real close-mic",
+    "bottle": "glass bottle smashing on concrete, sharp crack, burst of shards, fragments bouncing and skittering, bright tinkling tail, VFX-grade close-mic",
+    "window smash": "window pane smashing, razor-sharp crack, burst of crystal shards, fragments raining on the floor, bright tinkling tail, VFX-grade close-mic",
 })
 
 # Short, specific search terms for Freesound. Its text search matches every word,
@@ -185,6 +195,71 @@ FREESOUND_QUERIES = {
     "heartbeat": "heartbeat",
     "glass shattering": "glass shatter",
     "glass": "glass break",
+    "shatter": "glass shatter",
+    "glass cracking": "glass crack",
+    "glass crackling": "glass crack",
+    "crackling glass": "glass crack",
+    "cracking glass": "glass crack",
+    "ice cracking": "ice crack",
+    "bottle": "bottle break",
+    "window smash": "window break glass",
+    "lion": "lion roar",
+    "tiger": "tiger roar",
+    "bear": "bear growl",
+    "cow": "cow moo",
+    "horse": "horse neigh",
+    "sheep": "sheep bleat",
+    "pig": "pig grunt",
+    "duck": "duck quack",
+    "rooster": "rooster crow",
+    "crow": "crow caw",
+    "eagle": "eagle scream",
+    "elephant": "elephant trumpet",
+    "monkey": "monkey chimpanzee",
+    "frog": "frog croak",
+    "donkey": "donkey bray",
+    "snake": "snake hiss",
+    "bee": "bee buzz",
+    "insect": "crickets insects",
+    "puppy": "puppy bark",
+    "bird": "bird song",
+}
+
+ANIMAL_WORDS = {
+    "cat", "cats", "kitten", "kitty", "meow", "meowing", "purr", "dog", "dogs", "puppy", "bark", "barking",
+    "woof", "growl", "growling", "snarl", "wolf", "wolves", "coyote", "lion", "lions", "tiger", "tigers",
+    "leopard", "jaguar", "panther", "bear", "bears", "grizzly", "cow", "cows", "moo", "mooing", "bull",
+    "horse", "horses", "neigh", "neighing", "whinny", "pony", "goat", "goats", "sheep", "lamb", "baa",
+    "pig", "pigs", "oink", "hog", "boar", "duck", "ducks", "quack", "quacking", "goose", "geese",
+    "rooster", "chicken", "chickens", "hen", "cluck", "owl", "owls", "hoot", "crow", "crows", "raven",
+    "caw", "eagle", "hawk", "falcon", "elephant", "elephants", "monkey", "monkeys", "chimp", "chimpanzee",
+    "ape", "gorilla", "baboon", "frog", "frogs", "toad", "croak", "ribbit", "donkey", "mule", "bray",
+    "bird", "birds", "parrot", "seagull", "gull", "dolphin", "whale", "snake", "rattlesnake", "cobra",
+    "bee", "bees", "wasp", "cricket", "crickets", "cicada", "animal", "animals",
+}
+IMPACT_WORDS = {
+    "glass", "shatter", "shatters", "shattering", "smash", "smashing", "crack", "cracks", "cracking",
+    "bottle", "window", "break", "breaking", "explosion", "gunshot", "punch", "slam",
+}
+
+
+def classify(prompt: str, key: str | None) -> str:
+    """ambience (continuous beds), impact (VFX one-shots) or vocal (animal calls)."""
+    words = set(re.findall(r"[a-z]+", f"{prompt} {key or ''}".lower()))
+    if re.search(r"\b(rain|raining|drizzle|downpour)\b", prompt.lower()) and words & {"glass", "window"}:
+        return "ambience"  # rain on glass is a bed, not a break
+    if words & IMPACT_WORDS and not words & {"fire", "campfire", "fireplace", "bonfire"}:
+        return "impact"
+    if words & ANIMAL_WORDS:
+        return "vocal"
+    return "ambience"
+
+
+# Freesound search window and number of takes per kind of sound.
+KIND_PROFILE = {
+    "ambience": {"duration": "[6 TO 90]", "takes": 1, "el_seconds": 15.0},
+    "impact": {"duration": "[0.4 TO 10]", "takes": 3, "el_seconds": 4.0},
+    "vocal": {"duration": "[0.5 TO 20]", "takes": 3, "el_seconds": 6.0},
 }
 
 STOPWORDS = {
@@ -195,13 +270,18 @@ STOPWORDS = {
 
 
 def match_cinematic(prompt: str):
-    """Longest library key that appears in the prompt as whole words, e.g. 'female'
-    beats 'male' and 'cat' does not fire on 'location'."""
+    """Library key for the prompt, matched on whole words ('cat' does not fire on
+    'location', 'male' not on 'female'). The sound named first wins ('a cat in the
+    rain' is a cat), and at the same position the longer phrase wins."""
     text = prompt.lower()
-    for key in sorted(CINEMATIC_SOUNDS, key=len, reverse=True):
-        if re.search(r"\b" + re.escape(key) + r"s?\b", text):
-            return key
-    return None
+    best = None
+    for key in CINEMATIC_SOUNDS:
+        m = re.search(r"\b" + re.escape(key) + r"s?\b", text)
+        if m:
+            rank = (m.start(), -len(key))
+            if best is None or rank < best[0]:
+                best = (rank, key)
+    return best[1] if best else None
 
 
 def freesound_query(prompt: str, key: str | None) -> list[str]:
@@ -272,13 +352,16 @@ def search_audio(elaborated_prompt: str) -> str:
     return "NO_MATCH"
 
 
-def freesound_fetch(queries: list[str]) -> bytes | None:
-    """Find a real recorded sound effect on Freesound; return its HQ preview mp3."""
+def freesound_fetch(queries: list[str], kind: str = "ambience") -> list[bytes]:
+    """Find real recordings on Freesound; return up to N HQ preview mp3s.
+    Among the most relevant results, well-rated and much-downloaded sounds win."""
     if not FREESOUND_KEY:
-        return None
+        return []
+    profile = KIND_PROFILE[kind]
     deadline = time.monotonic() + 25  # never let Freesound eat the whole request
+    found: list[bytes] = []
     for query in queries:
-        if time.monotonic() > deadline:
+        if time.monotonic() > deadline or len(found) >= profile["takes"]:
             break
         try:
             response = requests.get(
@@ -286,37 +369,48 @@ def freesound_fetch(queries: list[str]) -> bytes | None:
                 params={
                     "query": query,
                     "token": FREESOUND_KEY,
-                    "fields": "id,name,previews,duration",
-                    "filter": "duration:[6 TO 90]",
+                    "fields": "id,name,previews,duration,num_downloads,avg_rating",
+                    "filter": f"duration:{profile['duration']}",
                     "sort": "score",
-                    "page_size": 5,
+                    "page_size": 15,
                 },
                 timeout=(5, 10),
             )
             if response.status_code != 200:
                 log.warning("[Freesound] HTTP %s: %s", response.status_code, response.text[:200])
                 if response.status_code in (401, 403, 429):
-                    return None  # bad key or rate limited — other queries won't help
+                    break  # bad key or rate limited — other queries won't help
                 continue
-            for result in response.json().get("results", []):
-                if time.monotonic() > deadline:
+            results = response.json().get("results", [])
+            ranked = sorted(
+                enumerate(results),
+                key=lambda ir: -ir[0] + 2.0 * math.log10(1 + (ir[1].get("num_downloads") or 0))
+                + 0.6 * (ir[1].get("avg_rating") or 0),
+                reverse=True,
+            )
+            for _, result in ranked:
+                if time.monotonic() > deadline or len(found) >= profile["takes"]:
                     break
                 url = (result.get("previews") or {}).get("preview-hq-mp3")
                 if not url:
                     continue
-                audio = requests.get(url, timeout=(5, 20))
+                audio = requests.get(url, timeout=(5, 15))
                 if audio.status_code == 200 and len(audio.content) > 1000:
                     log.info("[Freesound] '%s' -> %s", query, result.get("name"))
-                    return audio.content
+                    found.append(audio.content)
         except Exception as e:
             log.warning("[Freesound] %s", e)
-    return None
+    return found
 
 
-EXAGGERATE_PREFIX = "Exaggerated, over-the-top Hollywood cinematic sound effect, huge and larger than life, extremely loud and punchy: "
+EXAGGERATE_PREFIX = {
+    "ambience": "Exaggerated, over-the-top Hollywood cinematic sound effect, huge and larger than life, extremely loud and punchy: ",
+    "impact": "Single isolated VFX one-shot for film, hyper-real and exaggerated, razor-sharp attack, huge impact, clean tail, no music: ",
+    "vocal": "Hyper-real exaggerated cinematic animal vocalisation, close-mic, powerful and clear, isolated, no music, no human voice: ",
+}
 
 
-def elevenlabs_fetch(description: str) -> bytes | None:
+def elevenlabs_fetch(description: str, kind: str = "ambience") -> bytes | None:
     """Generate a sound effect with ElevenLabs; return mp3 bytes."""
     if not ELEVENLABS_KEY:
         return None
@@ -325,8 +419,8 @@ def elevenlabs_fetch(description: str) -> bytes | None:
             "https://api.elevenlabs.io/v1/sound-generation",
             headers={"xi-api-key": ELEVENLABS_KEY, "Content-Type": "application/json"},
             json={
-                "text": (EXAGGERATE_PREFIX + description)[:450],
-                "duration_seconds": 15.0,
+                "text": (EXAGGERATE_PREFIX[kind] + description)[:450],
+                "duration_seconds": KIND_PROFILE[kind]["el_seconds"],
                 "prompt_influence": 0.75,
             },
             timeout=(5, 60),
@@ -349,31 +443,51 @@ def _save_raw(data: bytes, out_base: str) -> str:
 def generate_audio(prompt: str, description: str, key: str | None, out_base: str) -> tuple[str, str]:
     """
     Returns (file path, engine name).
-    Freesound (real recording) and ElevenLabs (AI take) are fetched in parallel and
-    layered into one track. If only one answers it is used alone; if neither does,
-    the offline synth takes over. Every result goes through the exaggeration chain.
+    Freesound (real recordings) and ElevenLabs (AI take) are fetched in parallel
+    and combined according to the kind of sound:
+      ambience — one recording and the AI take layered into a single bed
+      impact   — each real take layered with the AI take, attacks aligned to the
+                 sample, then sequenced as distinct hits (a VFX pack)
+      vocal    — real and AI calls alternated with natural pauses
+    If neither service answers, the offline synth takes over. Every result is
+    mastered by the exaggeration chain for its kind.
     """
+    kind = classify(prompt, key)
     with ThreadPoolExecutor(max_workers=2) as pool:
-        fs_job = pool.submit(freesound_fetch, freesound_query(prompt, key))
-        el_job = pool.submit(elevenlabs_fetch, description)
-        fs_bytes, el_bytes = fs_job.result(), el_job.result()
+        fs_job = pool.submit(freesound_fetch, freesound_query(prompt, key), kind)
+        el_job = pool.submit(elevenlabs_fetch, description, kind)
+        fs_raw, el_raw = fs_job.result(), el_job.result()
 
-    fs = mixer.decode(fs_bytes) if fs_bytes else None
-    el = mixer.decode(el_bytes) if el_bytes else None
+    fs = [a for a in (mixer.decode(b) for b in fs_raw) if a is not None]
+    el = mixer.decode(el_raw) if el_raw else None
+    engines = "+".join(e for e, ok in (("freesound", fs), ("elevenlabs", el is not None)) if ok)
 
-    if fs is not None and el is not None:
-        return mixer.write_wav(out_base + ".wav", mixer.exaggerate(mixer.layer(fs, el))), "freesound+elevenlabs"
-    if fs is not None:
-        return mixer.write_wav(out_base + ".wav", mixer.exaggerate(mixer.clamp_length(fs))), "freesound"
-    if el is not None:
-        return mixer.write_wav(out_base + ".wav", mixer.exaggerate(mixer.clamp_length(el))), "elevenlabs"
+    mix = None
+    if kind == "ambience":
+        if fs and el is not None:
+            mix = mixer.layer(fs[0], el)
+        elif fs or el is not None:
+            mix = mixer.clamp_length(fs[0] if fs else el)
+    elif fs or el is not None:
+        takes = [mixer.trim(t) for t in fs]
+        el_take = mixer.trim(el) if el is not None else None
+        if kind == "impact":
+            hits = [mixer.align_layer(t, el_take) for t in takes] if takes and el_take is not None else takes or [el_take]
+            mix = mixer.sequence(hits, gap=(0.7, 1.1))
+        else:
+            calls = takes + ([el_take] if el_take is not None else [])
+            mix = mixer.sequence(calls, gap=(0.5, 1.0))
+
+    if mix is not None:
+        log.info("[Mix] %s via %s", kind, engines)
+        return mixer.write_wav(out_base + ".wav", mixer.exaggerate(mix, kind)), engines
 
     # Audio arrived but couldn't be decoded — serve it untouched rather than fail.
-    for data, engine in ((fs_bytes, "freesound"), (el_bytes, "elevenlabs")):
+    for data, engine in ((fs_raw[0] if fs_raw else None, "freesound"), (el_raw, "elevenlabs")):
         if data:
             return _save_raw(data, out_base), engine
 
     # Route the synth on what the user typed (plus the library key), not the long
     # description, which mentions many unrelated sounds ("rain", "wind", ...).
     x = render(f"{prompt} {key or ''}")
-    return mixer.write_wav(out_base + ".wav", mixer.exaggerate(x)), "procedural"
+    return mixer.write_wav(out_base + ".wav", mixer.exaggerate(x, kind)), "procedural"

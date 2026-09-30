@@ -6,6 +6,7 @@ Pure numpy, so a 12 s clip renders in well under a second.
 import re
 import wave
 import numpy as np
+import animals
 
 SR = 44100
 DURATION = 12
@@ -62,6 +63,8 @@ def _fade(x, seconds=0.05):
     k = min(len(x) // 2, int(seconds * SR))
     if k > 0:
         ramp = np.linspace(0, 1, k)
+        if x.ndim == 2:
+            ramp = ramp[:, None]
         x[:k] *= ramp
         x[-k:] *= ramp[::-1]
     return x
@@ -156,49 +159,6 @@ def heartbeat(n, rng, bpm=72):
         place(out, 0.7 * thump, (beat + 0.28) * SR)
         beat += period
     return out + 0.02 * band_noise(n, 20, 200, rng)
-
-
-def cat(n, rng):
-    out = np.zeros(n)
-    t = 0.2
-    while t < n / SR - 1:
-        L = int(rng.uniform(0.6, 1.1) * SR)
-        f0 = rng.uniform(450, 650)
-        curve = f0 * (1 + 0.5 * np.sin(np.pi * np.linspace(0, 1, L)) ** 0.8)
-        tone = glide_tone(curve, harmonics=(1, 0.6, 0.35, 0.2, 0.1), vibrato=0.015, vib_rate=7)
-        env = np.sin(np.pi * np.linspace(0, 1, L)) ** 0.6
-        place(out, tone * env, t * SR)
-        t += L / SR + rng.uniform(0.3, 0.9)
-    return out + 0.01 * band_noise(n, 100, 4000, rng)
-
-
-def dog(n, rng):
-    out = np.zeros(n)
-    t = 0.2
-    while t < n / SR - 0.5:
-        L = int(0.16 * SR)
-        f0 = rng.uniform(260, 380)
-        curve = np.linspace(f0 * 1.3, f0 * 0.8, L)
-        body = glide_tone(curve, harmonics=(1, 0.7, 0.5, 0.3, 0.2))
-        grit = band_noise(L, 300, 3000, rng)
-        place(out, (0.8 * body + 0.4 * grit) * decay(L, 0.06), t * SR)
-        t += rng.choice([0.28, 0.35, 0.9])
-    return out
-
-
-def wolf(n, rng):
-    out = 0.25 * wind(n, rng)
-    t = 0.3
-    while t < n / SR - 2:
-        L = int(rng.uniform(3.0, 4.5) * SR)
-        x = np.linspace(0, 1, L)
-        f0 = rng.uniform(380, 480)
-        curve = f0 * (0.75 + 0.5 * np.sin(np.pi * np.minimum(x * 1.4, 1)) ** 0.5 - 0.25 * x)
-        tone = glide_tone(curve, harmonics=(1, 0.3, 0.12), vibrato=0.01, vib_rate=5)
-        env = np.minimum(1, x * 6) * np.minimum(1, (1 - x) * 3)
-        place(out, 0.8 * tone * env, t * SR)
-        t += L / SR + rng.uniform(0.5, 1.5)
-    return out
 
 
 def bird(n, rng, density=1.0):
@@ -344,23 +304,129 @@ def robot(n, rng):
     return out
 
 
+# ── glass (VFX grade) ───────────────────────────────────────────────────────
+
+def _pan(mono, pos):
+    """Equal-power pan, pos in [-1, 1]."""
+    a = (pos + 1) * np.pi / 4
+    return np.stack([mono * np.cos(a), mono * np.sin(a)], axis=1)
+
+
+def _shard(rng, f0, length, dec):
+    """One glass fragment ringing: inharmonic plate modes with a click on top."""
+    t = _t(length)
+    ring = np.zeros(length)
+    for ratio, amp in ((1.0, 1.0), (2.32, 0.6), (4.25, 0.35), (6.63, 0.2)):
+        if f0 * ratio < 18000:
+            ring += amp * np.sin(2 * np.pi * f0 * ratio * t + rng.random() * 6) * decay(length, dec / ratio ** 0.5)
+    click_len = min(length, int(0.002 * SR))
+    ring[:click_len] += rng.standard_normal(click_len) * np.linspace(1, 0, click_len)
+    return ring
+
+
+def glass_hit(rng, seconds=3.0):
+    """A single pane shattering, stereo: crack, impact, burst, flying shards,
+    debris bouncing on the floor and a tinkling tail."""
+    n = int(seconds * SR)
+    out = np.zeros((n, 2))
+    at = int(0.06 * SR)  # tiny pre-roll so the transient isn't clipped by fades
+
+    # 1. crack transient — the sharp "snap" that sells the break
+    L = int(0.012 * SR)
+    crack = band_noise(L, 2500, 18000, rng) * decay(L, 0.002)
+    out[at:at + L] += _pan(2.2 * crack, 0)
+
+    # 2. body impact — low thump and mid clunk
+    L = int(0.35 * SR)
+    t = _t(L)
+    thump = np.sin(2 * np.pi * (95 * np.exp(-t * 7) + 45) * t) * decay(L, 0.09)
+    clunk = band_noise(L, 250, 1500, rng) * decay(L, 0.035)
+    place(out[:, 0], 0.9 * thump + 0.5 * clunk, at)
+    place(out[:, 1], 0.9 * thump + 0.5 * clunk, at)
+
+    # 3. breakage burst — dense granular noise, very bright
+    L = int(0.4 * SR)
+    grains = (rng.random(L) < 0.08) * rng.standard_normal(L)
+    burst = (0.6 * band_noise(L, 1800, 16000, rng) + 0.8 * grains) * decay(L, 0.09)
+    burst2 = (0.6 * band_noise(L, 1800, 16000, rng) + 0.8 * (rng.random(L) < 0.08) * rng.standard_normal(L)) * decay(L, 0.09)
+    out[at:at + L] += _pan(burst, -0.5) * 0.6 + _pan(burst2, 0.5) * 0.6
+
+    # 4. flying shards — many ringing fragments scattered in time and space
+    for _ in range(170):
+        start = at + int(rng.exponential(0.12) * SR)
+        length = int(rng.uniform(0.06, 0.5) * SR)
+        f0 = rng.uniform(1800, 9000)
+        sh = _shard(rng, f0, length, rng.uniform(0.02, 0.2)) * rng.uniform(0.04, 0.22)
+        clip = _pan(sh, rng.uniform(-0.9, 0.9))
+        end = min(n, start + length)
+        if start < n:
+            out[start:end] += clip[: end - start]
+
+    # 5. debris landing and bouncing — sparser, later, each piece bounces 1–3 times
+    for _ in range(70):
+        land = at + int((0.25 + rng.gamma(1.6, 0.35)) * SR)
+        f0 = rng.uniform(2500, 11000)
+        amp = rng.uniform(0.05, 0.25) * np.exp(-(land - at) / SR / 1.2)
+        pos = rng.uniform(-1, 1)
+        gap = rng.uniform(0.04, 0.12)
+        for b in range(rng.integers(1, 4)):
+            length = int(rng.uniform(0.03, 0.12) * SR)
+            s0 = land + int(gap * SR * b * (1 - 0.3 * b))
+            if s0 + length < n:
+                out[s0:s0 + length] += _pan(_shard(rng, f0, length, 0.02), pos) * amp * (0.55 ** b)
+
+    return out
+
+
 def glass(n, rng):
-    out = np.zeros(n)
+    """Several distinct shatters, spaced for easy cutting — a VFX pack."""
+    out = np.zeros((n, 2))
+    pos = int(0.1 * SR)
+    while pos < n - int(1.5 * SR):
+        hit = glass_hit(rng, rng.uniform(2.6, 3.2))
+        end = min(n, pos + len(hit))
+        out[pos:end] += hit[: end - pos] * rng.uniform(0.85, 1.0)
+        pos += len(hit) + int(rng.uniform(0.2, 0.5) * SR)
+    return out
+
+
+def glass_crack(n, rng, finale=True):
+    """Glass or ice under stress: creaks and spidering micro-fractures that
+    escalate, ending in a shatter (VFX build-up)."""
+    out = np.zeros((n, 2))
+    end_crack = n - int(3.2 * SR) if finale else n
+    # low creaking stress groan underneath
+    creak = band_noise(n, 120, 700, rng) * smooth_env(n, 3, rng, 1.0) ** 3
+    creak *= np.clip(np.linspace(0.2, 1.0, n), 0, 1)
+    out += _pan(0.25 * creak, 0)
     t = 0.3
-    while t < n / SR - 2:
-        L = int(2.5 * SR)
-        impact = band_noise(L, 800, 14000, rng) * decay(L, 0.05)
-        shards = np.zeros(L)
-        for _ in range(40):
-            f = rng.uniform(2000, 12000)
-            s = np.sin(2 * np.pi * f * _t(L)) * decay(L, rng.uniform(0.05, 0.4))
-            shards += np.roll(s, int(rng.uniform(0, 0.25) * SR)) * rng.uniform(0.05, 0.2)
-        tinkles = np.zeros(L)
-        for _ in range(25):
-            M = int(0.06 * SR)
-            place(tinkles, np.sin(2 * np.pi * rng.uniform(3000, 9000) * _t(M)) * decay(M, 0.015), rng.uniform(0.2, 2.2) * SR)
-        place(out, impact + shards + 0.3 * tinkles, t * SR)
-        t += rng.uniform(2.5, 3.5)
+    while t * SR < end_crack:
+        progress = t * SR / max(end_crack, 1)
+        # one crack event: a cluster of ticks that spider outward over ~50–250 ms
+        cluster = int(rng.uniform(6, 30) * (0.5 + progress))
+        span = rng.uniform(0.05, 0.25)
+        pos = rng.uniform(-0.8, 0.8)
+        base = rng.uniform(2500, 7000)
+        for i in range(cluster):
+            s0 = int((t + span * (i / cluster) ** 0.7) * SR)
+            length = int(rng.uniform(0.004, 0.03) * SR)
+            if s0 + length >= n:
+                break
+            amp = rng.uniform(0.15, 0.6) * (0.4 + 0.8 * progress) * (1 - 0.5 * i / cluster)
+            tick = _shard(rng, base * rng.uniform(0.8, 1.3), length, 0.004)
+            out[s0:s0 + length] += _pan(tick * amp, pos + rng.uniform(-0.15, 0.15))
+        # the main snap of the event: a very short bright click plus a glassy ping
+        L = int(0.06 * SR)
+        s0 = int(t * SR)
+        if s0 + L < n:
+            snap = band_noise(L, 3500, 18000, rng) * decay(L, 0.0012)
+            ping = _shard(rng, base * 1.4, L, 0.02) * 0.5
+            out[s0:s0 + L] += _pan((snap + ping) * (0.35 + 0.6 * progress), pos)
+        t += rng.uniform(0.25, 0.9) * (1.2 - 0.8 * progress)
+    if finale:
+        hit = glass_hit(rng, 3.0)
+        s0 = n - len(hit)
+        out[s0:] += hit * 1.2
     return out
 
 
@@ -375,7 +441,11 @@ def ambient(n, rng):
 RECIPES = [
     (("rain on glass", "rain on window", "rain on the window", "glass rain", "window rain"), rain_on_glass),
     (("thunderstorm", "thunder", "lightning", "storm"), thunder),
-    (("glass", "shatter", "shattering", "window break"), glass),
+    (("glass crack", "glass cracking", "cracking glass", "glass crackling", "crackling glass", "ice crack", "ice cracking", "cracking ice", "window crack", "screen crack"),
+     lambda n, r: glass_crack(n, r, finale=False)),
+    (("cracks and shatters", "crack and shatter", "cracking then shattering", "glass breaking slowly"), glass_crack),
+    (("glass", "shatter", "shattering", "shatters", "window break", "smash", "smashing", "bottle break"), glass),
+    *[(kws, animals.RECIPES[name]) for kws, name in animals.KEYWORDS],
     (("coffee shop", "coffee", "cafe", "café", "restaurant"), lambda n, r: crowd(n, r, cafe=True)),
     (("waterfall", "jungle"), waterfall),
     (("ocean", "wave", "waves", "sea", "beach", "surf"), ocean),
@@ -384,10 +454,7 @@ RECIPES = [
     (("laser", "blaster", "pew", "zap"), laser),
     (("spaceship", "spacecraft", "starship", "ufo", "space"), spaceship),
     (("robot", "android", "machine powering", "power up", "powering up"), robot),
-    (("wolf", "howl", "howling", "coyote"), wolf),
-    (("kitten", "cat", "meow", "meowing"), cat),
-    (("puppy", "dog", "bark", "barking"), dog),
-    (("bird", "birds", "chirp", "chirping", "forest"), bird),
+    (("bird", "birds", "chirp", "chirping", "forest", "songbird"), bird),
     (("keyboard", "typing", "type"), keyboard),
     (("heartbeat", "heart", "pulse"), heartbeat),
     (("clock", "tick", "ticking"), clock),
@@ -410,24 +477,25 @@ def match_recipe(prompt: str):
 
 
 def render(prompt: str, duration: int = DURATION, seed: int | None = None) -> np.ndarray:
-    """Render the best-matching recipe for `prompt` as a float mono signal in [-1, 1]."""
+    """Render the best-matching recipe for `prompt` as a float signal in [-1, 1]
+    (mono, or (n, 2) stereo for recipes that pan)."""
     rng = np.random.default_rng(seed)
     _, fn = match_recipe(prompt)
     n = duration * SR
     x = np.asarray(fn(n, rng), dtype=np.float64)[:n]
     if len(x) < n:
-        x = np.pad(x, (0, n - len(x)))
-    x -= x.mean()
+        x = np.pad(x, [(0, n - len(x))] + [(0, 0)] * (x.ndim - 1))
+    x -= x.mean(axis=0)
     x = np.tanh(1.2 * x / (np.abs(x).max() + 1e-9))  # gentle limiter
     return _fade(x / (np.abs(x).max() + 1e-9) * 0.89)
 
 
 def synthesize(prompt: str, path: str, duration: int = DURATION, seed: int | None = None) -> str:
-    """Render `prompt` to a 16-bit mono WAV at `path`."""
+    """Render `prompt` to a 16-bit WAV at `path`."""
     x = render(prompt, duration, seed)
     pcm = (x * 32767).astype("<i2")
     with wave.open(path, "wb") as w:
-        w.setnchannels(1)
+        w.setnchannels(1 if x.ndim == 1 else x.shape[1])
         w.setsampwidth(2)
         w.setframerate(SR)
         w.writeframes(pcm.tobytes())
